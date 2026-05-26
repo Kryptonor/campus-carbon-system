@@ -1,0 +1,96 @@
+package com.carbon.service;
+
+import com.carbon.config.CarbonProperties;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Objects;
+
+@Service
+public class BaiduAiClient {
+    private final RestTemplate restTemplate;
+    private final CarbonProperties carbonProperties;
+    private final ObjectMapper objectMapper;
+
+    private String accessToken;
+    private Instant accessTokenExpiresAt;
+
+    public BaiduAiClient(RestTemplate restTemplate, CarbonProperties carbonProperties, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.carbonProperties = carbonProperties;
+        this.objectMapper = objectMapper;
+    }
+
+    public AiLabelScore classify(String base64Image) {
+        String token = getAccessToken();
+        String endpoint = carbonProperties.getAi().getBaidu().getEndpoint();
+        if (endpoint == null || endpoint.isBlank()) {
+            throw new IllegalStateException("Baidu AI endpoint is not configured");
+        }
+
+        String body = "image=" + URLEncoder.encode(base64Image, StandardCharsets.UTF_8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        String url = endpoint + "?access_token=" + token;
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        JsonNode root = readJson(response.getBody());
+        JsonNode resultNode = root.path("result");
+        if (!resultNode.isArray() || resultNode.isEmpty()) {
+            return new AiLabelScore("unknown", 0.0);
+        }
+
+        JsonNode first = resultNode.get(0);
+        String label = first.path("keyword").asText("unknown");
+        double score = first.path("score").asDouble(0.0);
+        return new AiLabelScore(label, score);
+    }
+
+    private String getAccessToken() {
+        if (accessToken != null && accessTokenExpiresAt != null && accessTokenExpiresAt.isAfter(Instant.now().plusSeconds(60))) {
+            return accessToken;
+        }
+        String apiKey = carbonProperties.getAi().getBaidu().getApiKey();
+        String secretKey = carbonProperties.getAi().getBaidu().getSecretKey();
+        if (apiKey == null || apiKey.isBlank() || secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("Baidu AI credentials are not configured");
+        }
+
+        String tokenUrl = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(secretKey, StandardCharsets.UTF_8);
+
+        String response = restTemplate.getForObject(tokenUrl, String.class);
+        JsonNode root = readJson(response);
+        String token = root.path("access_token").asText();
+        int expiresIn = root.path("expires_in").asInt(0);
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Failed to acquire Baidu AI access token");
+        }
+        accessToken = token;
+        accessTokenExpiresAt = Instant.now().plusSeconds(Math.max(expiresIn, 0));
+        return accessToken;
+    }
+
+    private JsonNode readJson(String body) {
+        try {
+            return objectMapper.readTree(Objects.requireNonNullElse(body, "{}"));
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to parse Baidu AI response", ex);
+        }
+    }
+
+    public record AiLabelScore(String label, double score) {
+    }
+}
