@@ -1,0 +1,92 @@
+{
+  "info": {
+    "name": "Campus Carbon System Demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api", "users"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"studentNo\":\"S2026001\",\"name\":\"Test User\",\"phone\":\"13800000000\",\"avatarUrl\":\"https://example.com/avatar.png\"}"
+        }
+      }
+    },
+    {
+      "name": "Create Product",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/api/products", "host": ["{{baseUrl}}"], "path": ["api", "products"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Eco Bottle\",\"description\":\"Reusable bottle\",\"pricePoints\":20,\"stock\":50,\"imageUrl\":\"https://example.com/bottle.png\"}"
+        }
+      }
+    },
+    {
+      "name": "AI Verify",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {"raw": "{{baseUrl}}/api/ai/verify", "host": ["{{baseUrl}}"], "path": ["api", "ai", "verify"]},
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "userId", "value": "<USER_ID>", "type": "text"},
+            {"key": "behaviorType", "value": "clean_plate", "type": "text"},
+            {"key": "imageUrl", "value": "https://example.com/photo.jpg", "type": "text"},
+            {"key": "file", "type": "file", "src": "/path/to/photo.jpg"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Behavior List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "{{baseUrl}}/api/behaviors?userId=<USER_ID>&page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "behaviors"], "query": [{"key": "userId", "value": "<USER_ID>"}, {"key": "page", "value": "0"}, {"key": "size", "value": "10"}]}
+      }
+    },
+    {
+      "name": "Exchange Create",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/api/exchanges", "host": ["{{baseUrl}}"], "path": ["api", "exchanges"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":<USER_ID>,\"productId\":<PRODUCT_ID>,\"amount\":1}"
+        }
+      }
+    },
+    {
+      "name": "Exchange Redeem",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/api/exchanges/redeem", "host": ["{{baseUrl}}"], "path": ["api", "exchanges", "redeem"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"redeemCode\":\"<REDEEM_CODE>\"}"
+        }
+      }
+    },
+    {
+      "name": "Exchange List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "{{baseUrl}}/api/exchanges?userId=<USER_ID>&page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "exchanges"], "query": [{"key": "userId", "value": "<USER_ID>"}, {"key": "page", "value": "0"}, {"key": "size", "value": "10"}]}
+      }
+    }
+  ],
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"}
+  ]
+}
