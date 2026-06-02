@@ -1,0 +1,29 @@
+{
+  "name": "校园碳足迹",
+  "appid": "__UNI__CAMPUS_CARBON",
+  "description": "校园碳足迹绿色行动激励与积分系统",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于记录绿色出行轨迹"
+      }
+    }
+  },
+  "h5": {
+    "routerMode": "hash",
+    "devServer": {
+      "port": 5173
+    }
+  }
+}
