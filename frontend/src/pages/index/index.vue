@@ -128,7 +128,7 @@ function handleAction(action) {
 }
 
 function handlePeriodChange(period) {
-  console.log('切换周期:', period)
+  appStore.fetchCarbonTrend(period)
 }
 
 function goProfile() {
@@ -152,7 +152,7 @@ function goDataViz() {
 }
 
 function goBlockchainInfo() {
-  uni.showToast({ title: '区块链详情页面开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages/blockchain/index' })
 }
 </script>
 

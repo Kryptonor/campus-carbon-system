@@ -200,6 +200,35 @@ function handleMock(config, resolve) {
       return
     }
 
+    if (url === '/blockchain/contract-info' && method === 'GET') {
+      resolve({
+        code: 200,
+        data: {
+          networkStatus: '运行中',
+          chainName: 'FISCO BCOS 校园联盟链',
+          pointsToken: '0x3a9c2b8f1e4d7a6c5b3f8e2d1a0b9c7d5e4f3a2b',
+          actionLedger: '0x8f7e6d5c4b3a2918f7e6d5c4b3a2918f7e6d5c',
+          blockHeight: 184632 + Math.floor(Date.now() / 600000),
+          txCount: 12583 + Math.floor(Date.now() / 300000),
+        },
+      })
+      return
+    }
+
+    if (url === '/blockchain/action-records' && method === 'GET') {
+      resolve({
+        code: 200,
+        data: [
+          { id: 'ar1', icon: '🚲', actionName: '骑行通勤', date: '2026-06-02', txHash: '0x1a2b...3c4d' },
+          { id: 'ar2', icon: '🗑️', actionName: '垃圾分类投放', date: '2026-06-01', txHash: '0x5e6f...7g8h' },
+          { id: 'ar3', icon: '💡', actionName: '随手关灯', date: '2026-05-31', txHash: '0x9i0j...1k2l' },
+          { id: 'ar4', icon: '♻️', actionName: '旧物回收', date: '2026-05-30', txHash: '0x3m4n...5o6p' },
+          { id: 'ar5', icon: '🥬', actionName: '素食日打卡', date: '2026-05-29', txHash: '0x7q8r...9s0t' },
+        ],
+      })
+      return
+    }
+
     // ====== 碳足迹记录 ======
     if (url === '/record/list' && method === 'GET') {
       resolve({ code: 200, data: { records: [...mockRecords], total: mockRecords.length } })

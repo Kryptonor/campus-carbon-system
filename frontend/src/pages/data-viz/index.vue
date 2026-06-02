@@ -1,17 +1,21 @@
 <template>
   <view class="page">
     <scroll-view class="viz-scroll" scroll-y :show-scrollbar="false">
-      <!-- Carbon Breakdown Pie Chart -->
+      <!-- ===== Carbon Breakdown Pie Chart ===== -->
       <view class="chart-card card">
         <view class="chart-header">
           <text class="chart-title">碳足迹构成分析</text>
           <text class="chart-subtitle">本月</text>
         </view>
         <!-- #ifdef H5 -->
-        <view ref="pieDom" class="chart-dom"></view>
+        <view class="chart-body">
+          <view ref="pieDom" class="chart-dom"></view>
+        </view>
         <!-- #endif -->
         <!-- #ifdef MP-WEIXIN -->
-        <ec-canvas canvas-id="pieCanvas" :chart-option="pieOption" class="chart-dom" />
+        <view class="chart-body">
+          <ec-canvas canvas-id="pieCanvas" :chart-option="pieOption" class="chart-dom" />
+        </view>
         <!-- #endif -->
         <view class="chart-legend">
           <view v-for="item in breakdown" :key="item.name" class="legend-item">
@@ -20,34 +24,6 @@
             <text class="legend-value">{{ item.value }}%</text>
           </view>
         </view>
-      </view>
-
-      <!-- Campus Compare Bar Chart -->
-      <view class="chart-card card">
-        <view class="chart-header">
-          <text class="chart-title">校园碳排放对比</text>
-          <text class="chart-subtitle">我与全校平均</text>
-        </view>
-        <!-- #ifdef H5 -->
-        <view ref="barDom" class="chart-dom"></view>
-        <!-- #endif -->
-        <!-- #ifdef MP-WEIXIN -->
-        <ec-canvas canvas-id="barCanvas" :chart-option="barOption" class="chart-dom" />
-        <!-- #endif -->
-      </view>
-
-      <!-- Green Action Radar -->
-      <view class="chart-card card">
-        <view class="chart-header">
-          <text class="chart-title">绿色行为雷达图</text>
-          <text class="chart-subtitle">我的低碳表现</text>
-        </view>
-        <!-- #ifdef H5 -->
-        <view ref="radarDom" class="chart-dom"></view>
-        <!-- #endif -->
-        <!-- #ifdef MP-WEIXIN -->
-        <ec-canvas canvas-id="radarCanvas" :chart-option="radarOption" class="chart-dom" />
-        <!-- #endif -->
       </view>
 
       <!-- Tips -->
@@ -67,111 +43,122 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { request } from '@/api/request'
+
 // #ifdef H5
 import * as echarts from 'echarts'
 // #endif
-import { request } from '@/api/request'
 
 const breakdown = ref([])
-const campusCompare = ref([])
-const radarData = ref([])
 
-// #ifdef H5
+// ===================== H5 DOM Refs =====================
 const pieDom = ref(null)
-const barDom = ref(null)
-const radarDom = ref(null)
+
 let pieChart = null
-let barChart = null
-let radarChart = null
-// #endif
 
-// #ifdef MP-WEIXIN
-import { computed } from 'vue'
-
-const pieOption = computed(() => buildPieOption())
-const barOption = computed(() => buildBarOption())
-const radarOption = computed(() => buildRadarOption())
-// #endif
+// ===================== ECharts Options =====================
 
 function buildPieOption() {
+  const data = breakdown.value
+  if (!data || data.length === 0) return {}
   return {
-    tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
-    series: [{
-      type: 'pie',
-      radius: ['50%', '75%'],
-      center: ['50%', '45%'],
-      itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 3 },
-      label: { show: false },
-      emphasis: { scale: true, scaleSize: 8 },
-      data: breakdown.value.map((d) => ({ name: d.name, value: d.value, itemStyle: { color: d.color } })),
-    }],
-  }
-}
-
-function buildBarOption() {
-  return {
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['我', '全校平均'], textStyle: { color: '#9E9E9E', fontSize: 11 }, top: 0 },
-    grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
-    xAxis: { type: 'category', data: campusCompare.value.map((d) => d.label), axisLabel: { color: '#9E9E9E', fontSize: 11 }, axisTick: { show: false } },
-    yAxis: { type: 'value', name: 'kg CO₂', nameTextStyle: { color: '#9E9E9E', fontSize: 11 }, axisLabel: { color: '#9E9E9E', fontSize: 11 }, splitLine: { lineStyle: { color: '#F1F8E9' } } },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c}%',
+    },
     series: [
-      { name: '我', type: 'bar', data: campusCompare.value.map((d) => d.me), itemStyle: { color: '#4CAF50', borderRadius: [6, 6, 0, 0] }, barWidth: '35%' },
-      { name: '全校平均', type: 'bar', data: campusCompare.value.map((d) => d.avg), itemStyle: { color: '#C8E6C9', borderRadius: [6, 6, 0, 0] }, barWidth: '35%' },
+      {
+        type: 'pie',
+        radius: ['45%', '70%'],
+        center: ['50%', '50%'],
+        avoidLabelOverlap: false,
+        label: {
+          show: true,
+          formatter: '{c}%',
+          color: '#ffffff',
+          fontSize: 10,
+        },
+        emphasis: {
+          label: {
+            fontSize: 14,
+            fontWeight: 'bold',
+          },
+        },
+        data: data.map((d) => ({
+          value: d.value,
+          name: d.name,
+          itemStyle: { color: d.color },
+        })),
+      },
+    ],
+    graphic: [
+      {
+        type: 'text',
+        left: 'center',
+        top: '42%',
+        style: {
+          text: '碳足迹',
+          textAlign: 'center',
+          fill: '#1B5E20',
+          fontSize: 13,
+        },
+      },
+      {
+        type: 'text',
+        left: 'center',
+        top: '52%',
+        style: {
+          text: '构成',
+          textAlign: 'center',
+          fill: '#9E9E9E',
+          fontSize: 11,
+        },
+      },
     ],
   }
 }
 
-function buildRadarOption() {
-  return {
-    tooltip: {},
-    radar: {
-      center: ['50%', '50%'],
-      radius: '65%',
-      indicator: radarData.value.map((d) => ({ name: d.name, max: d.max })),
-      axisName: { color: '#9E9E9E', fontSize: 10 },
-      splitArea: { areaStyle: { color: ['#F1F8E9', '#fff', '#F1F8E9', '#fff'] } },
-    },
-    series: [{
-      type: 'radar',
-      data: [{ value: radarData.value.map((d) => d.value), name: '我的表现' }],
-      areaStyle: { color: 'rgba(76, 175, 80, 0.2)' },
-      lineStyle: { color: '#4CAF50', width: 2 },
-      itemStyle: { color: '#2E7D32' },
-      symbol: 'circle',
-      symbolSize: 5,
-    }],
-  }
+// ===================== MP-WEIXIN Computed Options =====================
+const pieOption = computed(() => buildPieOption())
+
+// ===================== H5 Chart Init =====================
+// #ifdef H5
+
+function initPieChart() {
+  if (!pieDom.value) return
+  pieChart?.dispose()
+  pieChart = echarts.init(pieDom.value)
+  pieChart.setOption(buildPieOption())
 }
 
+function handleResize() {
+  pieChart?.resize()
+}
+
+// #endif
+
+// ===================== Lifecycle =====================
+
 onMounted(async () => {
-  const [bRes, cRes, rRes] = await Promise.all([
-    request({ url: '/data/carbon-breakdown', method: 'GET' }),
-    request({ url: '/data/campus-compare', method: 'GET' }),
-    request({ url: '/data/radar', method: 'GET' }),
-  ])
+  const bRes = await request({ url: '/data/carbon-breakdown', method: 'GET' })
   if (bRes.code === 200) breakdown.value = bRes.data
-  if (cRes.code === 200) campusCompare.value = cRes.data
-  if (rRes.code === 200) radarData.value = rRes.data
 
   // #ifdef H5
-  nextTick(() => { initH5Charts() })
+  await nextTick()
+  setTimeout(() => {
+    initPieChart()
+  }, 100)
+  window.addEventListener('resize', handleResize)
   // #endif
 })
 
-// #ifdef H5
-function initH5Charts() {
-  if (pieDom.value) { pieChart = echarts.init(pieDom.value); pieChart.setOption(buildPieOption()) }
-  if (barDom.value) { barChart = echarts.init(barDom.value); barChart.setOption(buildBarOption()) }
-  if (radarDom.value) { radarChart = echarts.init(radarDom.value); radarChart.setOption(buildRadarOption()) }
-}
-
 onBeforeUnmount(() => {
-  pieChart?.dispose(); barChart?.dispose(); radarChart?.dispose()
+  // #ifdef H5
+  window.removeEventListener('resize', handleResize)
+  pieChart?.dispose()
+  // #endif
 })
-// #endif
-
 </script>
 
 <style lang="scss" scoped>
@@ -181,7 +168,8 @@ onBeforeUnmount(() => {
 .chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: $space-md; }
 .chart-title { font-size: $font-lg; font-weight: 600; color: $text-primary; }
 .chart-subtitle { font-size: $font-xs; color: $text-light; }
-.chart-dom { width: 100%; height: 380rpx; }
+.chart-body { width: 100%; }
+.chart-dom { width: 100%; height: 400rpx; }
 .chart-legend { display: flex; flex-wrap: wrap; gap: $space-sm; margin-top: $space-sm; }
 .legend-item { display: flex; align-items: center; gap: 6rpx; }
 .legend-dot { width: 16rpx; height: 16rpx; border-radius: 50%; }

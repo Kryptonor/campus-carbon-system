@@ -47,6 +47,16 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
+  // 单独获取碳足迹趋势数据（支持按周期切换）
+  async function fetchCarbonTrend(period = 'week') {
+    try {
+      const res = await homeApi.getCarbonTrend(period)
+      if (res.code === 200) carbonTrend.value = res.data
+    } catch (e) {
+      console.error('获取碳足迹趋势失败:', e)
+    }
+  }
+
   // 获取区块链信息
   async function fetchBlockchainInfo() {
     try {
@@ -64,6 +74,7 @@ export const useAppStore = defineStore('app', () => {
     blockchainInfo,
     loading,
     fetchDashboardData,
+    fetchCarbonTrend,
     fetchBlockchainInfo,
   }
 })

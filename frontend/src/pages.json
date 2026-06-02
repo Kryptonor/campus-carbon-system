@@ -96,10 +96,15 @@
       "style": {
         "navigationBarTitleText": "数据分析",
         "navigationBarBackgroundColor": "#2E7D32",
-        "navigationBarTextStyle": "white",
-        "usingComponents": {
-          "ec-canvas": "/wxcomponents/ec-canvas/ec-canvas"
-        }
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/blockchain/index",
+      "style": {
+        "navigationBarTitleText": "链上存证",
+        "navigationBarBackgroundColor": "#2E7D32",
+        "navigationBarTextStyle": "white"
       }
     },
     {
