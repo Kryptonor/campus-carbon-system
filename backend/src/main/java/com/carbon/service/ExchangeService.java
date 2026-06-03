@@ -1,5 +1,6 @@
 package com.carbon.service;
 
+import com.carbon.blockchain.service.BlockchainTxQueue;
 import com.carbon.dao.ExchangeRecordRepository;
 import com.carbon.dao.ProductRepository;
 import com.carbon.dao.UserRepository;
@@ -20,13 +21,16 @@ public class ExchangeService {
     private final ExchangeRecordRepository exchangeRecordRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final BlockchainTxQueue blockchainTxQueue;
 
     public ExchangeService(ExchangeRecordRepository exchangeRecordRepository,
                            UserRepository userRepository,
-                           ProductRepository productRepository) {
+                           ProductRepository productRepository,
+                           BlockchainTxQueue blockchainTxQueue) {
         this.exchangeRecordRepository = exchangeRecordRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.blockchainTxQueue = blockchainTxQueue;
     }
 
     @Transactional
@@ -59,7 +63,12 @@ public class ExchangeService {
         record.setRedeemCode(generateRedeemCode());
         record.setRedeemStatus(0);
         record.setTxHash(null);
-        return exchangeRecordRepository.save(record);
+        ExchangeRecord saved = exchangeRecordRepository.save(record);
+
+        // 异步上链存证 + 积分消耗（不阻塞当前请求响应）
+        blockchainTxQueue.submitExchange(saved);
+
+        return saved;
     }
 
     @Transactional

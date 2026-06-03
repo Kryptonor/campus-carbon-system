@@ -1,5 +1,6 @@
 package com.carbon.service;
 
+import com.carbon.blockchain.service.BlockchainTxQueue;
 import com.carbon.config.CarbonProperties;
 import com.carbon.dao.BehaviorRecordRepository;
 import com.carbon.dao.UserRepository;
@@ -24,19 +25,22 @@ public class AiVerifyService {
     private final CarbonProperties carbonProperties;
     private final BehaviorRuleService behaviorRuleService;
     private final UserRepository userRepository;
+    private final BlockchainTxQueue blockchainTxQueue;
 
     public AiVerifyService(BaiduAiClient baiduAiClient,
                            BehaviorRecordRepository behaviorRecordRepository,
                            SystemConfigService systemConfigService,
                            CarbonProperties carbonProperties,
                            BehaviorRuleService behaviorRuleService,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           BlockchainTxQueue blockchainTxQueue) {
         this.baiduAiClient = baiduAiClient;
         this.behaviorRecordRepository = behaviorRecordRepository;
         this.systemConfigService = systemConfigService;
         this.carbonProperties = carbonProperties;
         this.behaviorRuleService = behaviorRuleService;
         this.userRepository = userRepository;
+        this.blockchainTxQueue = blockchainTxQueue;
     }
 
     public AiVerifyResponse verify(Long userId, String behaviorType, MultipartFile file, String imageUrl) {
@@ -80,6 +84,9 @@ public class AiVerifyService {
         record.setDecision(decision);
         record.setStatus(status);
         BehaviorRecord saved = behaviorRecordRepository.save(record);
+
+        // 异步上链存证 + 积分铸造（不阻塞当前请求响应）
+        blockchainTxQueue.submitBehavior(saved);
 
         return new AiVerifyResponse(saved.getId(), decision, aiResult.label(), BigDecimal.valueOf(aiResult.score()), threshold, points);
     }
