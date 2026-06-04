@@ -4,8 +4,8 @@ import com.carbon.blockchain.config.BlockchainProperties;
 import com.carbon.blockchain.exception.BlockchainException;
 import com.carbon.entity.BehaviorRecord;
 import com.carbon.entity.ExchangeRecord;
-import org.fisco.bcos.sdk.v3.model.TransactionResponse;
-import org.fisco.bcos.sdk.v3.model.callback.CallResponse;
+import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
+import org.fisco.bcos.sdk.v3.transaction.model.dto.CallResponse;
 import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,72 +53,82 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public String recordBehavior(BehaviorRecord behavior, String studentNo) {
-        String cpAddress = properties.getContracts().getCarbonPoints();
-        String atAddress = properties.getContracts().getAuditTrail();
+        try {
+            String cpAddress = properties.getContracts().getCarbonPoints();
+            String atAddress = properties.getContracts().getAuditTrail();
 
-        // 1. 存证上链 — AuditTrail.recordBehavior(...)
-        List<Object> auditParams = buildBehaviorParams(behavior, studentNo);
-        TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
-                CONTRACT_AUDIT_TRAIL, atAddress, "recordBehavior", auditParams);
-        checkTxResponse(auditTx, "recordBehavior");
+            // 1. 存证上链 — AuditTrail.recordBehavior(...)
+            List<Object> auditParams = buildBehaviorParams(behavior, studentNo);
+            TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
+                    CONTRACT_AUDIT_TRAIL, atAddress, "recordBehavior", auditParams);
+            checkTxResponse(auditTx, "recordBehavior");
 
-        String txHash = auditTx.getTransactionReceipt().getTransactionHash();
-        log.info("Behavior recorded on chain: recordId={}, txHash={}", behavior.getId(), txHash);
+            String txHash = auditTx.getTransactionReceipt().getTransactionHash();
+            log.info("Behavior recorded on chain: recordId={}, txHash={}", behavior.getId(), txHash);
 
-        // 2. 如果 AI 判定通过，铸造积分 — CarbonPoints.mint(...)
-        if ("PASS".equals(behavior.getDecision()) && behavior.getPoints() > 0) {
-            List<Object> mintParams = Arrays.asList(
-                    studentNo,
-                    BigInteger.valueOf(behavior.getPoints()),
-                    String.valueOf(behavior.getId())
-            );
-            TransactionResponse mintTx = processor.sendTransactionAndGetResponseByContractLoader(
-                    CONTRACT_CARBON_POINTS, cpAddress, "mint", mintParams);
-            checkTxResponse(mintTx, "mint");
-            log.info("Points minted on chain: studentNo={}, amount={}, mintTxHash={}",
-                    studentNo, behavior.getPoints(),
-                    mintTx.getTransactionReceipt().getTransactionHash());
+            // 2. 如果 AI 判定通过，铸造积分 — CarbonPoints.mint(...)
+            if ("PASS".equals(behavior.getDecision()) && behavior.getPoints() > 0) {
+                List<Object> mintParams = Arrays.asList(
+                        studentNo,
+                        BigInteger.valueOf(behavior.getPoints()),
+                        String.valueOf(behavior.getId())
+                );
+                TransactionResponse mintTx = processor.sendTransactionAndGetResponseByContractLoader(
+                        CONTRACT_CARBON_POINTS, cpAddress, "mint", mintParams);
+                checkTxResponse(mintTx, "mint");
+                log.info("Points minted on chain: studentNo={}, amount={}, mintTxHash={}",
+                        studentNo, behavior.getPoints(),
+                        mintTx.getTransactionReceipt().getTransactionHash());
+            }
+
+            return txHash;
+        } catch (Exception e) {
+            log.error("Failed to record behavior on chain: {}", behavior.getId(), e);
+            throw new BlockchainException("Failed to record behavior on chain: " + e.getMessage(), e);
         }
-
-        return txHash;
     }
 
     // ==================== 兑换上链 ====================
 
     @Override
     public String recordExchange(ExchangeRecord exchange, String studentNo) {
-        String cpAddress = properties.getContracts().getCarbonPoints();
-        String atAddress = properties.getContracts().getAuditTrail();
+        try {
+            String cpAddress = properties.getContracts().getCarbonPoints();
+            String atAddress = properties.getContracts().getAuditTrail();
 
-        // 1. 先消耗积分 — CarbonPoints.burn(...)
-        List<Object> burnParams = Arrays.asList(
-                studentNo,
-                BigInteger.valueOf(exchange.getTotalPoints()),
-                String.valueOf(exchange.getId())
-        );
-        TransactionResponse burnTx = processor.sendTransactionAndGetResponseByContractLoader(
-                CONTRACT_CARBON_POINTS, cpAddress, "burn", burnParams);
-        checkTxResponse(burnTx, "burn");
+            // 1. 先消耗积分 — CarbonPoints.burn(...)
+            List<Object> burnParams = Arrays.asList(
+                    studentNo,
+                    BigInteger.valueOf(exchange.getTotalPoints()),
+                    String.valueOf(exchange.getId())
+            );
+            TransactionResponse burnTx = processor.sendTransactionAndGetResponseByContractLoader(
+                    CONTRACT_CARBON_POINTS, cpAddress, "burn", burnParams);
+            checkTxResponse(burnTx, "burn");
 
-        // 2. 存证上链 — AuditTrail.recordExchange(...)
-        byte[] redeemCodeHashBytes = sha256(exchange.getRedeemCode());
-        byte[] redeemCodeHash32 = Arrays.copyOf(redeemCodeHashBytes, 32);
+            // 2. 存证上链 — AuditTrail.recordExchange(...)
+            byte[] redeemCodeHashBytes = sha256(exchange.getRedeemCode());
+            byte[] redeemCodeHash32 = Arrays.copyOf(redeemCodeHashBytes, 32);
 
-        List<Object> auditParams = new ArrayList<>();
-        auditParams.add(BigInteger.valueOf(exchange.getId()));
-        auditParams.add(studentNo);
-        auditParams.add(BigInteger.valueOf(exchange.getProductId()));
-        auditParams.add(BigInteger.valueOf(exchange.getAmount()));
-        auditParams.add(BigInteger.valueOf(exchange.getTotalPoints()));
-        auditParams.add(redeemCodeHash32);
+            List<Object> auditParams = new ArrayList<>();
+            auditParams.add(BigInteger.valueOf(exchange.getId()));
+            auditParams.add(studentNo);
+            auditParams.add(BigInteger.valueOf(exchange.getProductId()));
+            auditParams.add(BigInteger.valueOf(exchange.getAmount()));
+            auditParams.add(BigInteger.valueOf(exchange.getTotalPoints()));
+            auditParams.add(redeemCodeHash32);
 
-        TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
-                CONTRACT_AUDIT_TRAIL, atAddress, "recordExchange", auditParams);
-        checkTxResponse(auditTx, "recordExchange");
+            TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
+                    CONTRACT_AUDIT_TRAIL, atAddress, "recordExchange", auditParams);
+            checkTxResponse(auditTx, "recordExchange");
 
-        String txHash = auditTx.getTransactionReceipt().getTransactionHash();
-        log.info("Exchange recorded on chain: recordId={}, txHash={}", exchange.getId(), txHash);
-        return txHash;
+            String txHash = auditTx.getTransactionReceipt().getTransactionHash();
+            log.info("Exchange recorded on chain: recordId={}, txHash={}", exchange.getId(), txHash);
+            return txHash;
+        } catch (Exception e) {
+            log.error("Failed to record exchange on chain: {}", exchange.getId(), e);
+            throw new BlockchainException("Failed to record exchange on chain: " + e.getMessage(), e);
+        }
     }
 
     // ==================== 查询 ====================
@@ -132,14 +142,11 @@ public class BlockchainServiceImpl implements BlockchainService {
 
             CallResponse response = processor.sendCallByContractLoader(
                     CONTRACT_CARBON_POINTS, cpAddress, "balanceOf", params);
-            List<Object> values = response.getValues();
+            String values = response.getValues();
             if (values != null && !values.isEmpty()) {
-                Object val = values.get(0);
-                if (val instanceof BigInteger bi) {
-                    return bi.longValue();
-                }
-                if (val instanceof Number num) {
-                    return num.longValue();
+                String numStr = values.replaceAll("[\\[\\]\\s]", "");
+                if (!numStr.isEmpty()) {
+                    return Long.parseLong(numStr);
                 }
             }
             return 0L;
@@ -159,9 +166,12 @@ public class BlockchainServiceImpl implements BlockchainService {
 
             CallResponse response = processor.sendCallByContractLoader(
                     CONTRACT_AUDIT_TRAIL, atAddress, "isImageHashExists", params);
-            List<Object> values = response.getValues();
-            if (values != null && !values.isEmpty() && values.get(0) instanceof Boolean b) {
-                return b;
+            String values = response.getValues();
+            if (values != null && !values.isEmpty()) {
+                String boolStr = values.replaceAll("[\\[\\]\\s]", "");
+                if (!boolStr.isEmpty()) {
+                    return Boolean.parseBoolean(boolStr);
+                }
             }
             return false;
         } catch (Exception e) {

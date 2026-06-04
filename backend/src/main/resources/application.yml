@@ -27,13 +27,6 @@ carbon:
   audit:
     # Non-tamper audit log placeholder for compliance narratives.
     enabled: true
-
-app:
-  request-timeout-ms: 8000
-  auth:
-    token: ""
-
-carbon:
   blockchain:
     # Set to false in development to disable all on-chain operations.
     enabled: true
@@ -43,3 +36,8 @@ carbon:
     contracts:
       carbon-points: "0xPASTE_CARBON_POINTS_ADDRESS_HERE"
       audit-trail: "0xPASTE_AUDIT_TRAIL_ADDRESS_HERE"
+
+app:
+  request-timeout-ms: 8000
+  auth:
+    token: ""
