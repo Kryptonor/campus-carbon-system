@@ -36,10 +36,10 @@ public class BlockchainConfig {
     @Bean(destroyMethod = "stopAll")
     public BcosSDK bcosSDK() throws IOException {
         // config-example.toml 需放在 classpath 根目录（resources/）
-        // 由于 FISCO BCOS SDK 加载配置需要文件系统路径，这里做 classpath → 实际路径转换
+        // 由于 FISCO BCOS SDK 加载配置需要 file 路径，这里做 classpath → 实际路径转换
         String configPath = resolveClasspath("config-example.toml");
         log.info("Initializing BcosSDK from: {}", configPath);
-        return new BcosSDK(configPath);
+        return BcosSDK.build(configPath);
     }
 
     @Bean
@@ -48,7 +48,7 @@ public class BlockchainConfig {
         Client client = bcosSDK.getClient("group0");
         if (client == null) {
             // FISCO BCOS 3.x 可能使用数字形式
-            client = bcosSDK.getClient(0);
+            client = bcosSDK.getClient("0");
         }
         if (client == null) {
             throw new IllegalStateException("Failed to get FISCO BCOS client — check config-example.toml peers and group");
@@ -99,7 +99,11 @@ public class BlockchainConfig {
         // 优先尝试 classpath
         java.net.URL url = getClass().getClassLoader().getResource(resource);
         if (url != null) {
-            return Paths.get(url.toURI()).toString();
+            try {
+                return Paths.get(url.toURI()).toString();
+            } catch (Exception e) {
+                throw new IOException("Failed to resolve classpath URI for resource: " + resource, e);
+            }
         }
         // 回退: 相对于 working directory 的 src/main/resources/
         Path fallback = Paths.get("backend", "src", "main", "resources", resource);
