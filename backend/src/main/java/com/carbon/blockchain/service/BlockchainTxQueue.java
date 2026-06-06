@@ -78,7 +78,19 @@ public class BlockchainTxQueue {
             String txHash = blockchainService.recordBehavior(behavior, studentNo);
             // 回填 txHash
             behavior.setTxHash(txHash);
+            behavior.setStatus("COMPLETED");
             behaviorRecordRepository.save(behavior);
+
+            // 上链成功后，同步增加 MySQL 中用户的 points_balance 余额
+            if ("PASS".equals(behavior.getDecision()) && behavior.getPoints() > 0) {
+                userRepository.findById(behavior.getUserId()).ifPresent(user -> {
+                    user.setPointsBalance(user.getPointsBalance() + behavior.getPoints());
+                    userRepository.save(user);
+                    log.info("User points updated successfully: userId={}, studentNo={}, added={} points, current balance={}",
+                            user.getId(), studentNo, behavior.getPoints(), user.getPointsBalance());
+                });
+            }
+
             log.info("Behavior on-chain success: recordId={}, txHash={}", behavior.getId(), txHash);
         } catch (Exception e) {
             log.error("Behavior on-chain failed (will retry): recordId={}, error={}",
@@ -100,8 +112,9 @@ public class BlockchainTxQueue {
         try {
             String studentNo = resolveStudentNo(exchange.getUserId());
             String txHash = blockchainService.recordExchange(exchange, studentNo);
-            // 回填 txHash
+            // 回填 txHash 并更新兑换记录状态为 1（已兑换并成功上链确认）
             exchange.setTxHash(txHash);
+            exchange.setStatus(1);
             exchangeRecordRepository.save(exchange);
             log.info("Exchange on-chain success: recordId={}, txHash={}", exchange.getId(), txHash);
         } catch (Exception e) {
@@ -130,7 +143,19 @@ public class BlockchainTxQueue {
                 String studentNo = resolveStudentNo(record.getUserId());
                 String txHash = blockchainService.recordBehavior(record, studentNo);
                 record.setTxHash(txHash);
+                record.setStatus("COMPLETED");
                 behaviorRecordRepository.save(record);
+
+                // 补录成功后也需要同步增加 MySQL 中用户的 points_balance 余额
+                if ("PASS".equals(record.getDecision()) && record.getPoints() > 0) {
+                    userRepository.findById(record.getUserId()).ifPresent(user -> {
+                        user.setPointsBalance(user.getPointsBalance() + record.getPoints());
+                        userRepository.save(user);
+                        log.info("User points updated via retry successfully: userId={}, studentNo={}, added={} points, current balance={}",
+                                user.getId(), studentNo, record.getPoints(), user.getPointsBalance());
+                    });
+                }
+
                 log.info("Retry success: behavior recordId={}, txHash={}", record.getId(), txHash);
             } catch (Exception e) {
                 log.warn("Retry failed: behavior recordId={}, error={}", record.getId(), e.getMessage());
@@ -156,6 +181,7 @@ public class BlockchainTxQueue {
                 String studentNo = resolveStudentNo(record.getUserId());
                 String txHash = blockchainService.recordExchange(record, studentNo);
                 record.setTxHash(txHash);
+                record.setStatus(1);
                 exchangeRecordRepository.save(record);
                 log.info("Retry success: exchange recordId={}, txHash={}", record.getId(), txHash);
             } catch (Exception e) {

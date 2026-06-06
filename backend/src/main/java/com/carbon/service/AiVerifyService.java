@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.util.Base64;
 import java.util.Set;
 
+import com.carbon.blockchain.service.BlockchainService;
+
 @Service
 public class AiVerifyService {
     private final BaiduAiClient baiduAiClient;
@@ -26,6 +28,7 @@ public class AiVerifyService {
     private final BehaviorRuleService behaviorRuleService;
     private final UserRepository userRepository;
     private final BlockchainTxQueue blockchainTxQueue;
+    private final BlockchainService blockchainService;
 
     public AiVerifyService(BaiduAiClient baiduAiClient,
                            BehaviorRecordRepository behaviorRecordRepository,
@@ -33,7 +36,8 @@ public class AiVerifyService {
                            CarbonProperties carbonProperties,
                            BehaviorRuleService behaviorRuleService,
                            UserRepository userRepository,
-                           BlockchainTxQueue blockchainTxQueue) {
+                           BlockchainTxQueue blockchainTxQueue,
+                           BlockchainService blockchainService) {
         this.baiduAiClient = baiduAiClient;
         this.behaviorRecordRepository = behaviorRecordRepository;
         this.systemConfigService = systemConfigService;
@@ -41,6 +45,7 @@ public class AiVerifyService {
         this.behaviorRuleService = behaviorRuleService;
         this.userRepository = userRepository;
         this.blockchainTxQueue = blockchainTxQueue;
+        this.blockchainService = blockchainService;
     }
 
     public AiVerifyResponse verify(Long userId, String behaviorType, MultipartFile file, String imageUrl) {
@@ -59,6 +64,13 @@ public class AiVerifyService {
         byte[] bytes = readBytes(file);
         String base64 = Base64.getEncoder().encodeToString(bytes);
         String imageHash = sha256Hex(bytes);
+
+        // 重复图片检验（本地和链上双重校验拦截，防刷分且避免浪费 AI 识别额度）
+        if (behaviorRecordRepository.existsByImageHashAndDecision(imageHash, "PASS") 
+                || blockchainService.isImageHashExists(imageHash)) {
+            throw new IllegalArgumentException("duplicate image submission");
+        }
+
         BaiduAiClient.AiLabelScore aiResult = baiduAiClient.classify(base64);
 
         double threshold = systemConfigService.getDouble(

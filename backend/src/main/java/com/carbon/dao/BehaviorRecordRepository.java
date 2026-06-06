@@ -14,4 +14,7 @@ public interface BehaviorRecordRepository extends JpaRepository<BehaviorRecord, 
 
 	/** 查询所有未上链的行为记录（txHash 为 null），供定时补录任务使用 */
 	List<BehaviorRecord> findByTxHashIsNull();
+
+	/** 判断是否存在相同图片哈希且审核通过的记录，用于防重复提交 */
+	boolean existsByImageHashAndDecision(String imageHash, String decision);
 }
