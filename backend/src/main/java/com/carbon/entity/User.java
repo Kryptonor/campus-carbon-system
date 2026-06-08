@@ -36,6 +36,18 @@ public class User {
     @Column(name = "points_balance", nullable = false)
     private Long pointsBalance = 0L;
 
+    @Column(name = "password", length = 128, nullable = false)
+    private String password = "";
+
+    @Column(name = "department", length = 64)
+    private String department = "";
+
+    @Column(name = "class_name", length = 64)
+    private String className = "";
+
+    @Column(name = "grade", length = 32)
+    private String grade = "";
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -124,5 +136,37 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
     }
 }

@@ -4,7 +4,7 @@ import com.carbon.entity.BehaviorRecord;
 import com.carbon.service.BehaviorRecordService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import com.carbon.dto.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,10 +20,10 @@ public class BehaviorRecordController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<BehaviorRecord>> list(
+    public ApiResponse<Page<BehaviorRecord>> list(
             @RequestParam(value = "userId", required = false) Long userId,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(behaviorRecordService.list(userId, pageable));
+        return ApiResponse.ok(behaviorRecordService.list(userId, pageable));
     }
 }

@@ -4,7 +4,7 @@ import com.carbon.dto.AiVerifyResponse;
 import com.carbon.service.AiVerifyService;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.http.ResponseEntity;
+import com.carbon.dto.ApiResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,14 +22,14 @@ public class AiVerifyController {
         this.aiVerifyService = aiVerifyService;
     }
 
-    @PostMapping("/verify")
-    public ResponseEntity<AiVerifyResponse> verify(
+    @PostMapping(value = {"/verify", "/analyze"})
+    public ApiResponse<AiVerifyResponse> verify(
             @RequestParam("userId") @NotNull Long userId,
             @RequestParam("behaviorType") @NotBlank String behaviorType,
             @RequestParam("file") @NotNull MultipartFile file,
             @RequestParam(value = "imageUrl", required = false) String imageUrl
     ) {
         AiVerifyResponse response = aiVerifyService.verify(userId, behaviorType, file, imageUrl);
-        return ResponseEntity.ok(response);
+        return ApiResponse.ok(response);
     }
 }

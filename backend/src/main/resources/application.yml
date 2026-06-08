@@ -22,8 +22,8 @@ carbon:
     confidence-threshold: 0.80
     baidu:
       endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general
-      api-key: ""
-      secret-key: ""
+      api-key: "JHvZ30ANA9ORAddAiC71pA83"
+      secret-key: "43ZQ8EmvMsQD2IbVOVhaefitMrXFDS7L"
   audit:
     # Non-tamper audit log placeholder for compliance narratives.
     enabled: true

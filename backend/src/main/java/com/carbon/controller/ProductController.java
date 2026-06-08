@@ -4,7 +4,7 @@ import com.carbon.dto.CreateProductRequest;
 import com.carbon.entity.Product;
 import com.carbon.service.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import com.carbon.dto.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,17 +24,17 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> create(@Valid @RequestBody CreateProductRequest request) {
-        return ResponseEntity.ok(productService.create(request));
+    public ApiResponse<Product> create(@Valid @RequestBody CreateProductRequest request) {
+        return ApiResponse.ok(productService.create(request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> get(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getById(id));
+    public ApiResponse<Product> get(@PathVariable Long id) {
+        return ApiResponse.ok(productService.getById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> list() {
-        return ResponseEntity.ok(productService.list());
+    public ApiResponse<List<Product>> list() {
+        return ApiResponse.ok(productService.list());
     }
 }

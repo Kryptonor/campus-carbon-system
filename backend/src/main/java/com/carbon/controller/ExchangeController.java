@@ -7,7 +7,7 @@ import com.carbon.service.ExchangeService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import com.carbon.dto.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,20 +25,20 @@ public class ExchangeController {
     }
 
     @PostMapping
-    public ResponseEntity<ExchangeRecord> create(@Valid @RequestBody CreateExchangeRequest request) {
-        return ResponseEntity.ok(exchangeService.create(request));
+    public ApiResponse<ExchangeRecord> create(@Valid @RequestBody CreateExchangeRequest request) {
+        return ApiResponse.ok(exchangeService.create(request));
     }
 
     @GetMapping
-    public ResponseEntity<Page<ExchangeRecord>> list(
+    public ApiResponse<Page<ExchangeRecord>> list(
             @RequestParam(value = "userId", required = false) Long userId,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(exchangeService.list(userId, pageable));
+        return ApiResponse.ok(exchangeService.list(userId, pageable));
     }
 
     @PostMapping("/redeem")
-    public ResponseEntity<ExchangeRecord> redeem(@Valid @RequestBody RedeemRequest request) {
-        return ResponseEntity.ok(exchangeService.redeem(request.redeemCode()));
+    public ApiResponse<ExchangeRecord> redeem(@Valid @RequestBody RedeemRequest request) {
+        return ApiResponse.ok(exchangeService.redeem(request.redeemCode()));
     }
 }

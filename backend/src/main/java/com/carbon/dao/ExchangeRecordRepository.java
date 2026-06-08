@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface ExchangeRecordRepository extends JpaRepository<ExchangeRecord, Long> {
 	Page<ExchangeRecord> findByUserId(Long userId, Pageable pageable);
+	List<ExchangeRecord> findByUserId(Long userId);
 	Optional<ExchangeRecord> findByRedeemCode(String redeemCode);
 
 	/** 查询所有未上链的兑换记录（txHash 为 null），供定时补录任务使用 */

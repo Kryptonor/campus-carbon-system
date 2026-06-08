@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SimpleAuthFilterConfig {
     @Bean
-    public FilterRegistrationBean<SimpleAuthFilter> simpleAuthFilter(AppAuthProperties appAuthProperties) {
-        FilterRegistrationBean<SimpleAuthFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new SimpleAuthFilter(appAuthProperties));
+    public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration(JwtUtils jwtUtils) {
+        FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new JwtAuthFilter(jwtUtils));
         registration.addUrlPatterns("/*");
         registration.setOrder(1);
         return registration;
