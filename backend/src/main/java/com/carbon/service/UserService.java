@@ -35,4 +35,27 @@ public class UserService {
     public List<User> list() {
         return userRepository.findAll();
     }
+
+    public List<User> list(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return userRepository.findAll();
+        }
+        return userRepository.findByNameContainingOrStudentNoContainingOrPhoneContaining(keyword, keyword, keyword);
+    }
+
+    public User update(Long id, com.carbon.dto.UpdateUserRequest request) {
+        User user = getById(id);
+        user.setName(request.name());
+        user.setPhone(request.phone());
+        user.setAvatarUrl(request.avatarUrl());
+        if (request.pointsBalance() != null) {
+            user.setPointsBalance(request.pointsBalance());
+        }
+        return userRepository.save(user);
+    }
+
+    public void delete(Long id) {
+        User user = getById(id);
+        userRepository.delete(user);
+    }
 }
