@@ -34,7 +34,18 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> list() {
-        return ResponseEntity.ok(userService.list());
+    public ResponseEntity<List<User>> list(@org.springframework.web.bind.annotation.RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(userService.list(keyword));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody com.carbon.dto.UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.update(id, request));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.ok().build();
     }
 }
