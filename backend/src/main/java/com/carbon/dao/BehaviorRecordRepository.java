@@ -17,4 +17,8 @@ public interface BehaviorRecordRepository extends JpaRepository<BehaviorRecord, 
 
 	/** 判断是否存在相同图片哈希且审核通过的记录，用于防重复提交 */
 	boolean existsByImageHashAndDecision(String imageHash, String decision);
+
+	List<BehaviorRecord> findByDecision(String decision);
+
+	List<BehaviorRecord> findByDecisionAndCreatedAtAfter(String decision, LocalDateTime dateTime);
 }
