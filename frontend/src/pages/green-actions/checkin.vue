@@ -84,7 +84,10 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { actionsApi } from '@/api/actions'
+import { useUserStore } from '@/stores/user'
+import { STORAGE_KEYS, API_BASE_URL } from '@/utils/constants'
 
+const userStore = useUserStore()
 const actionId = ref('')
 const name = ref('')
 const icon = ref('')
@@ -142,40 +145,69 @@ async function handleSubmit() {
   uni.showLoading({ title: 'AI 审核中...' })
 
   try {
-    const res = await actionsApi.checkin({
-      actionId: actionId.value,
-      category: selectedCategory.value,
-      photo: photoPath.value,
-      notes: notes.value,
-      date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    const token = uni.getStorageSync(STORAGE_KEYS.token)
+    // 兼容本地 H5 相对路径上传
+    const host = window ? window.location.origin : 'http://localhost:5173'
+    const uploadUrl = API_BASE_URL.startsWith('http') ? (API_BASE_URL + '/ai/verify') : (host + API_BASE_URL + '/ai/verify')
+
+    uni.uploadFile({
+      url: uploadUrl,
+      filePath: photoPath.value,
+      name: 'file',
+      header: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      formData: {
+        userId: userStore.userInfo ? userStore.userInfo.id : 0,
+        behaviorType: actionId.value,
+      },
+      success: (uploadFileRes) => {
+        uni.hideLoading()
+        try {
+          const res = JSON.parse(uploadFileRes.data)
+          if (res.code === 200) {
+            const aiData = res.data
+            const isPassed = aiData.decision === 'PASS'
+            
+            result.value = {
+              status: isPassed ? 'passed' : 'rejected',
+              title: isPassed ? '打卡成功！' : '打卡未通过',
+              desc: isPassed 
+                ? `获得 ${aiData.points} 碳积分`
+                : `AI判定结果为: [${aiData.label || '不匹配'}]，置信度较低或非对应绿色行为！`,
+              aiResult: { confidence: aiData.score || 0 },
+              txHash: aiData.txHash || '',
+            }
+          } else {
+            result.value = {
+              status: 'rejected',
+              title: '打卡未通过',
+              desc: res.message || '识别不匹配或置信度较低，请重试！',
+            }
+          }
+        } catch (parseErr) {
+          result.value = {
+            status: 'rejected',
+            title: '解析失败',
+            desc: '服务器响应异常，请稍后重试！',
+          }
+        }
+        submitting.value = false
+        showResult.value = true
+      },
+      fail: (err) => {
+        uni.hideLoading()
+        submitting.value = false
+        result.value = { status: 'rejected', title: '网络错误', desc: '上传图片失败，请检查网络连接！' }
+        showResult.value = true
+      }
     })
-
-    uni.hideLoading()
-
-    if (res.code === 200) {
-      result.value = {
-        status: res.data.status || 'passed',
-        title: res.data.status === 'pending' ? '待人工审核' : '打卡成功！',
-        desc: res.data.status === 'pending'
-          ? '你的打卡记录已提交，等待管理员审核'
-          : `获得 ${res.data.points || points.value} 碳积分`,
-        aiResult: res.data.aiResult || { confidence: 0.85 },
-        txHash: res.data.txHash || '',
-      }
-    } else {
-      result.value = {
-        status: 'rejected',
-        title: '提交失败',
-        desc: res.message || '请稍后重试',
-      }
-    }
   } catch (e) {
     uni.hideLoading()
-    result.value = { status: 'rejected', title: '网络错误', desc: '请检查网络连接' }
+    submitting.value = false
+    result.value = { status: 'rejected', title: '打卡错误', desc: '打卡请求异常！' }
+    showResult.value = true
   }
-
-  submitting.value = false
-  showResult.value = true
 }
 
 function closeResult() {

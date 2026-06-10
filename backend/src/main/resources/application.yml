@@ -5,11 +5,11 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/campus_carbon?useSSL=false&serverTimezone=UTC
     username: root
-    password: ""
+    password: "668157"
   jpa:
     hibernate:
-      ddl-auto: none
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
     open-in-view: false
 
   servlet:
@@ -29,7 +29,7 @@ carbon:
     enabled: true
   blockchain:
     # Set to false in development to disable all on-chain operations.
-    enabled: true
+    enabled: false
     # true: Asynchronous mode (non-blocking). false: Synchronous mode (waits for transaction confirmation).
     async-enabled: true
 

@@ -43,7 +43,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     private final AssembleTransactionProcessor processor;
     private final BlockchainProperties properties;
 
-    public BlockchainServiceImpl(AssembleTransactionProcessor processor,
+    public BlockchainServiceImpl(@org.springframework.beans.factory.annotation.Autowired(required = false) AssembleTransactionProcessor processor,
                                  BlockchainProperties properties) {
         this.processor = processor;
         this.properties = properties;
@@ -53,6 +53,12 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public String recordBehavior(BehaviorRecord behavior, String studentNo) {
+        if (!properties.isEnabled()) {
+            String mockTxHash = "0x" + java.util.UUID.randomUUID().toString().replace("-", "");
+            log.info("Blockchain disabled. Mock behavior on-chain: recordId={}, studentNo={}, txHash={}", 
+                     behavior.getId(), studentNo, mockTxHash);
+            return mockTxHash;
+        }
         try {
             String cpAddress = properties.getContracts().getCarbonPoints();
             String atAddress = properties.getContracts().getAuditTrail();
@@ -92,6 +98,12 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public String recordExchange(ExchangeRecord exchange, String studentNo) {
+        if (!properties.isEnabled()) {
+            String mockTxHash = "0x" + java.util.UUID.randomUUID().toString().replace("-", "");
+            log.info("Blockchain disabled. Mock exchange on-chain: recordId={}, studentNo={}, txHash={}", 
+                     exchange.getId(), studentNo, mockTxHash);
+            return mockTxHash;
+        }
         try {
             String cpAddress = properties.getContracts().getCarbonPoints();
             String atAddress = properties.getContracts().getAuditTrail();
@@ -135,6 +147,9 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public long getOnChainBalance(String studentNo) {
+        if (!properties.isEnabled()) {
+            return 0L;
+        }
         try {
             String cpAddress = properties.getContracts().getCarbonPoints();
             List<Object> params = new ArrayList<>();
@@ -158,6 +173,9 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public boolean isImageHashExists(String imageHashHex) {
+        if (!properties.isEnabled()) {
+            return false;
+        }
         try {
             String atAddress = properties.getContracts().getAuditTrail();
             byte[] hashBytes = HexFormat.of().parseHex(imageHashHex);

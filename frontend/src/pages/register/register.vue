@@ -70,7 +70,7 @@
             type="text"
           />
           <text class="pwd-toggle" @tap="showPwd = !showPwd">
-            {{ showPwd ? '🙈' : '👁️' }}
+            {{ showPwd ? '隐藏' : '显示' }}
           </text>
         </view>
       </view>
@@ -145,11 +145,12 @@ function onDepartmentChange(e) {
 
 function validateForm() {
   if (!form.studentId.trim()) return '请输入学号'
-  if (!/^\d{6,12}$/.test(form.studentId.trim())) return '学号格式不正确'
-  if (!form.name.trim()) return '请输入姓名'
+  if (!/^[a-zA-Z0-9_-]{4,20}$/.test(form.studentId.trim())) return '学号输入不标准，应为4-20位数字或字母'
+  if (!form.name.trim()) return '请输入真实姓名'
+  if (form.name.trim().length < 2 || form.name.trim().length > 10) return '姓名输入不标准，应为2-10位字符'
   if (!form.department) return '请选择学院'
   if (!form.className.trim()) return '请输入班级'
-  if (!form.password || form.password.length < 6) return '密码至少6位'
+  if (!form.password || form.password.length < 6 || form.password.length > 20) return '密码长度应在6至20位之间'
   if (form.password !== confirmPassword.value) return '两次密码输入不一致'
   return null
 }
@@ -182,7 +183,7 @@ async function handleRegister() {
 }
 
 function goLogin() {
-  uni.navigateBack()
+  uni.redirectTo({ url: '/pages/login/login' })
 }
 </script>
 

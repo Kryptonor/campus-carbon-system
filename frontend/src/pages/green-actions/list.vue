@@ -124,11 +124,11 @@ const stats = reactive({ todayCheckins: 0, totalCarbon: 0, totalPoints: 0 })
 
 const statusLabels = { passed: '已通过', pending: '待审核', rejected: '已驳回' }
 
-const cleanPlateAction = computed(() => actions.value.find((a) => a.id === 'cleanPlate') || defaultCleanPlate)
-const defaultCleanPlate = { id: 'cleanPlate', name: '光盘打卡', icon: '🍽️', points: 10, dailyLimit: 3, description: '拍摄餐后光盘照片，AI自动审核' }
+const cleanPlateAction = computed(() => actions.value.find((a) => a.id === 'cleanPlate' || a.id === 'clean_plate') || defaultCleanPlate)
+const defaultCleanPlate = { id: 'clean_plate', name: '光盘打卡', icon: '🍽️', points: 10, dailyLimit: 3, description: '拍摄餐后光盘照片，AI自动审核' }
 
 const cleanPlateRemaining = computed(() => {
-  const todayCount = records.value.filter((r) => r.actionId === 'cleanPlate' && isToday(r.date)).length
+  const todayCount = records.value.filter((r) => (r.actionId === 'cleanPlate' || r.actionId === 'clean_plate') && isToday(r.date)).length
   return Math.max(0, 3 - todayCount)
 })
 
@@ -137,7 +137,7 @@ const recycleRemaining = computed(() => {
   return Math.max(0, 5 - todayCount)
 })
 
-const otherActions = computed(() => actions.value.filter((a) => !['cleanPlate', 'recycle'].includes(a.id)))
+const otherActions = computed(() => actions.value.filter((a) => !['cleanPlate', 'clean_plate', 'recycle'].includes(a.id)))
 
 function isToday(dateStr) {
   if (!dateStr) return false
@@ -154,10 +154,10 @@ async function loadData() {
   ])
   if (actRes.code === 200) actions.value = actRes.data
   if (histRes.code === 200) {
-    records.value = histRes.data.records
+    records.value = histRes.data.records || histRes.data.content || []
     const todayRecords = records.value.filter((r) => isToday(r.date))
     stats.todayCheckins = todayRecords.length
-    stats.totalPoints = records.value.reduce((s, r) => s + r.points, 0)
+    stats.totalPoints = records.value.reduce((s, r) => s + (r.points || 0), 0)
     stats.totalCarbon = (stats.totalPoints * 0.05).toFixed(1)
   }
 }

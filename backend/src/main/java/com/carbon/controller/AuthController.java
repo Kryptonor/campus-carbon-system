@@ -28,11 +28,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
-        if (request.studentNo() == null || request.password() == null) {
+        String username = request.getUsername();
+        if (username == null || request.password() == null) {
             return ApiResponse.error(400, "学号或密码不能为空");
         }
 
-        Optional<User> userOpt = userRepository.findByStudentNo(request.studentNo());
+        Optional<User> userOpt = userRepository.findByStudentNo(username);
         if (userOpt.isEmpty()) {
             return ApiResponse.error(400, "用户不存在");
         }
