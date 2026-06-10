@@ -29,11 +29,13 @@ import java.nio.file.Paths;
  * resources/abi/ 和 resources/bin/ 下已放置合约 ABI 和 BIN 文件。
  */
 @Configuration
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "carbon.blockchain", name = "enabled", havingValue = "true")
 public class BlockchainConfig {
 
     private static final Logger log = LoggerFactory.getLogger(BlockchainConfig.class);
 
     @Bean(destroyMethod = "stopAll")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "carbon.blockchain.enabled", havingValue = "true")
     public BcosSDK bcosSDK() throws IOException {
         // config-example.toml 需放在 classpath 根目录（resources/）
         // 由于 FISCO BCOS SDK 加载配置需要 file 路径，这里做 classpath → 实际路径转换
@@ -43,6 +45,7 @@ public class BlockchainConfig {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "carbon.blockchain.enabled", havingValue = "true")
     public Client client(BcosSDK bcosSDK) {
         // group0 是建链时的默认群组
         Client client = bcosSDK.getClient("group0");
@@ -58,6 +61,7 @@ public class BlockchainConfig {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "carbon.blockchain.enabled", havingValue = "true")
     public CryptoKeyPair credential(Client client) {
         CryptoKeyPair keyPair = client.getCryptoSuite().getCryptoKeyPair();
         log.info("Blockchain admin address: {}", keyPair.getAddress());
@@ -65,6 +69,7 @@ public class BlockchainConfig {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "carbon.blockchain.enabled", havingValue = "true")
     public AssembleTransactionProcessor transactionProcessor(
             Client client,
             CryptoKeyPair credential) throws IOException {

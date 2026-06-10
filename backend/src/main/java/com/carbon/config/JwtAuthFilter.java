@@ -21,6 +21,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
+        System.out.println("[JwtAuthFilter] Path: " + path + ", Authorization: " + request.getHeader("Authorization"));
         
         // 白名单放行
         if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {

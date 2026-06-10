@@ -1,11 +1,13 @@
 package com.carbon.service;
 
+import com.carbon.blockchain.config.BlockchainProperties;
 import com.carbon.blockchain.service.BlockchainTxQueue;
 import com.carbon.config.CarbonProperties;
 import com.carbon.dao.BehaviorRecordRepository;
 import com.carbon.dao.UserRepository;
 import com.carbon.dto.AiVerifyResponse;
 import com.carbon.entity.BehaviorRecord;
+import com.carbon.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +31,7 @@ public class AiVerifyService {
     private final UserRepository userRepository;
     private final BlockchainTxQueue blockchainTxQueue;
     private final BlockchainService blockchainService;
+    private final BlockchainProperties blockchainProperties;
 
     public AiVerifyService(BaiduAiClient baiduAiClient,
                            BehaviorRecordRepository behaviorRecordRepository,
@@ -37,7 +40,8 @@ public class AiVerifyService {
                            BehaviorRuleService behaviorRuleService,
                            UserRepository userRepository,
                            BlockchainTxQueue blockchainTxQueue,
-                           BlockchainService blockchainService) {
+                           BlockchainService blockchainService,
+                           BlockchainProperties blockchainProperties) {
         this.baiduAiClient = baiduAiClient;
         this.behaviorRecordRepository = behaviorRecordRepository;
         this.systemConfigService = systemConfigService;
@@ -46,6 +50,7 @@ public class AiVerifyService {
         this.userRepository = userRepository;
         this.blockchainTxQueue = blockchainTxQueue;
         this.blockchainService = blockchainService;
+        this.blockchainProperties = blockchainProperties;
     }
 
     public AiVerifyResponse verify(Long userId, String behaviorType, MultipartFile file, String imageUrl) {
@@ -98,7 +103,20 @@ public class AiVerifyService {
         BehaviorRecord saved = behaviorRecordRepository.save(record);
 
         // 异步上链存证 + 积分铸造（不阻塞当前请求响应）
-        blockchainTxQueue.submitBehavior(saved);
+        if (blockchainProperties.isEnabled()) {
+            blockchainTxQueue.submitBehavior(saved);
+        } else {
+            // 如果链不启用，直接在本地加分，并置状态为 COMPLETED
+            if (pass) {
+                saved.setStatus("COMPLETED");
+                behaviorRecordRepository.save(saved);
+
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("user not found"));
+                user.setPointsBalance(user.getPointsBalance() + points);
+                userRepository.save(user);
+            }
+        }
 
         return new AiVerifyResponse(saved.getId(), decision, aiResult.label(), BigDecimal.valueOf(aiResult.score()), threshold, points);
     }
