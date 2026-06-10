@@ -36,7 +36,7 @@
             type="text"
           />
           <text class="pwd-toggle" @tap="showPwd = !showPwd">
-            {{ showPwd ? '🙈' : '👁️' }}
+            {{ showPwd ? '隐藏' : '显示' }}
           </text>
         </view>
       </view>
@@ -55,23 +55,6 @@
       </view>
     </view>
 
-    <!-- WeChat Login -->
-    <view class="wechat-section">
-      <view class="divider">
-        <view class="divider-line"></view>
-        <text class="divider-text">其他登录方式</text>
-        <view class="divider-line"></view>
-      </view>
-
-      <button
-        class="wechat-btn"
-        open-type="getPhoneNumber"
-        @getphonenumber="handleWechatLogin"
-      >
-        <text class="wechat-icon">💬</text>
-        <text class="wechat-text">微信一键登录</text>
-      </button>
-    </view>
 
     <!-- Blockchain Status -->
     <view class="blockchain-status">
@@ -116,22 +99,6 @@ async function handleLogin() {
   }
 }
 
-async function handleWechatLogin(e) {
-  if (e.detail.errMsg === 'getPhoneNumber:ok') {
-    loading.value = true
-    const result = await userStore.wechatLogin()
-    loading.value = false
-
-    if (result.success) {
-      uni.showToast({ title: '登录成功', icon: 'success' })
-      setTimeout(() => {
-        uni.reLaunch({ url: '/pages/index/index' })
-      }, 800)
-    } else {
-      uni.showToast({ title: result.message, icon: 'none' })
-    }
-  }
-}
 
 function goRegister() {
   uni.navigateTo({ url: '/pages/register/register' })

@@ -9,8 +9,8 @@ const requestInterceptors = []
 const responseInterceptors = []
 const errorInterceptors = []
 
-// Mock 开关：后端未就绪时设为 true
-const USE_MOCK = true
+// Mock 开关：后端已就绪，设为 false 进行真实联调
+const USE_MOCK = false
 
 // ====== Mock 数据 ======
 import {
@@ -91,6 +91,14 @@ export function request(config) {
           resolve(result)
         } else if (res.statusCode === 401) {
           // token 过期，清除登录状态
+          console.warn('Authentication failed: 401 Unauthorized', res)
+          uni.removeStorageSync(STORAGE_KEYS.token)
+          uni.removeStorageSync(STORAGE_KEYS.userInfo)
+          uni.reLaunch({ url: '/pages/login/login' })
+          reject(new Error('登录已过期，请重新登录'))
+        } else if (res.data && res.data.code === 401) {
+          // 兼容后端返回 200，但 body.code 为 401 的情况
+          console.warn('Authentication failed: Body code 401', res.data)
           uni.removeStorageSync(STORAGE_KEYS.token)
           uni.removeStorageSync(STORAGE_KEYS.userInfo)
           uni.reLaunch({ url: '/pages/login/login' })

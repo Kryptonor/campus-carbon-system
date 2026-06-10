@@ -79,7 +79,7 @@ onShow(() => loadRecords())
 
 async function loadRecords() {
   const res = await recordApi.getList(1, 50)
-  if (res.code === 200) records.value = res.data.records
+  if (res.code === 200) records.value = res.data.records || res.data.content || []
 }
 
 async function onRefresh() {
