@@ -39,6 +39,9 @@ public class User {
     @Column(name = "password", length = 128, nullable = false)
     private String password = "";
 
+    @Column(name = "role", length = 16, nullable = false)
+    private String role = "USER";
+
     @Column(name = "department", length = 64)
     private String department = "";
 
@@ -144,6 +147,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getDepartment() {

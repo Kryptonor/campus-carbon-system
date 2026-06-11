@@ -95,12 +95,13 @@ public class StatsService {
 
     public List<LeaderboardEntry> getLeaderboard(int limit) {
         double rate = getExchangeRate();
-        // 按照积分余额排行
+        // 按积分余额排行，排除管理员
         List<User> topUsers = userRepository.findAll(
                 PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "pointsBalance"))
         ).getContent();
 
         return topUsers.stream()
+                .filter(u -> !"ADMIN".equals(u.getRole()))
                 .map(u -> new LeaderboardEntry(
                         u.getId(),
                         u.getStudentNo(),
@@ -118,8 +119,10 @@ public class StatsService {
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
 
         if ("class".equalsIgnoreCase(scope)) {
-            // 班级人均排行
-            List<User> allUsers = userRepository.findAll();
+            // 班级人均排行，排除管理员
+            List<User> allUsers = userRepository.findAll().stream()
+                    .filter(u -> !"ADMIN".equals(u.getRole()))
+                    .collect(Collectors.toList());
             // 按班级分组，过滤掉班级为空的用户
             Map<String, List<User>> classGroup = allUsers.stream()
                     .filter(u -> u.getClassName() != null && !u.getClassName().isBlank())
@@ -170,8 +173,10 @@ public class StatsService {
 
             return new LeaderboardResponse(paged, myRank, myScore);
         } else {
-            // 全校个人排行
-            List<User> allUsers = userRepository.findAll();
+            // 全校个人排行，排除管理员
+            List<User> allUsers = userRepository.findAll().stream()
+                    .filter(u -> !"ADMIN".equals(u.getRole()))
+                    .collect(Collectors.toList());
             allUsers.sort((u1, u2) -> Long.compare(u2.getPointsBalance(), u1.getPointsBalance()));
 
             List<LeaderboardRankItem> items = new ArrayList<>();
@@ -258,12 +263,14 @@ public class StatsService {
         double goalCarbon = 50.0; // 默认碳减排目标
         double goalProgress = Math.min(100.0, (weeklyCarbon / goalCarbon) * 100);
 
-        // 学院排名
+        // 学院排名（排除管理员）
         String dept = user.getDepartment();
         long collegeRank = 1;
         long collegeTotal = 1;
         if (dept != null && !dept.isBlank()) {
-            List<User> collegeUsers = userRepository.findByDepartment(dept);
+            List<User> collegeUsers = userRepository.findByDepartment(dept).stream()
+                    .filter(u -> !"ADMIN".equals(u.getRole()))
+                    .collect(Collectors.toList());
             // 按照 pointsBalance 降序
             collegeUsers.sort((u1, u2) -> Long.compare(u2.getPointsBalance(), u1.getPointsBalance()));
             collegeTotal = collegeUsers.size();
@@ -274,8 +281,10 @@ public class StatsService {
                 }
             }
         } else {
-            // 如果部门为空，按全局排名算
-            List<User> allUsers = userRepository.findAll();
+            // 如果部门为空，按全局排名算（排除管理员）
+            List<User> allUsers = userRepository.findAll().stream()
+                    .filter(u -> !"ADMIN".equals(u.getRole()))
+                    .collect(Collectors.toList());
             allUsers.sort((u1, u2) -> Long.compare(u2.getPointsBalance(), u1.getPointsBalance()));
             collegeTotal = allUsers.size();
             for (int i = 0; i < allUsers.size(); i++) {

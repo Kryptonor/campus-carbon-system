@@ -18,8 +18,8 @@
     <view class="carbon-dash card">
       <view class="dash-main">
         <text class="dash-main-label">碳积分总额</text>
-        <text class="dash-main-value">{{ userInfo.points || 0 }}</text>
-        <text class="dash-main-hint">≈ {{ ((userInfo.points || 0) * 0.05).toFixed(1) }} kg CO₂ 减排量</text>
+        <text class="dash-main-value">{{ userInfo.pointsBalance || 0 }}</text>
+        <text class="dash-main-hint">≈ {{ ((userInfo.pointsBalance || 0) * 0.05).toFixed(1) }} kg CO₂ 减排量</text>
       </view>
       <view class="dash-grid">
         <view class="dash-item">
@@ -31,7 +31,7 @@
           <text class="dash-item-label">本月消耗</text>
         </view>
         <view class="dash-item">
-          <text class="dash-item-val">{{ (userInfo.carbonReduced || 0).toFixed(1) }}kg</text>
+          <text class="dash-item-val">{{ ((userInfo.pointsBalance || 0) * 0.05).toFixed(1) }}kg</text>
           <text class="dash-item-label">累计减排</text>
         </view>
         <view class="dash-item">
@@ -57,7 +57,7 @@
       </view>
       <view class="info-row">
         <text class="info-label">加入日期</text>
-        <text class="info-value">{{ userInfo.joinDate || '-' }}</text>
+        <text class="info-value">{{ (userInfo.createdAt || '').slice(0, 10) || '-' }}</text>
       </view>
       <view class="info-row" @tap="editProfile">
         <text class="info-label">资料编辑</text>
@@ -161,18 +161,19 @@ const editForm = reactive({
 })
 
 const departments = [
-  '计算机科学与技术学院',
-  '软件学院',
-  '信息与通信工程学院',
+  '大气科学学院',
+  '资源环境学院',
+  '应用数学学院',
   '电子工程学院',
-  '数学与统计学院',
-  '物理学院',
-  '化学化工学院',
-  '生命科学学院',
-  '经济管理学院',
-  '外国语学院',
-  '法学院',
+  '计算机学院',
+  '软件工程学院',
+  '网络空间安全学院',
+  '光电工程学院',
+  '管理学院',
+  '物流学院',
   '马克思主义学院',
+  '人工智能学院（区块链产业学院）',
+  '自动化学院',
 ]
 
 const userInfo = computed(() => userStore.userInfo || {})
@@ -186,7 +187,7 @@ const shortAddress = computed(() => {
 })
 
 const ecoTreeCount = computed(() => {
-  return ((userInfo.value.carbonReduced || 0) / 20).toFixed(2)
+  return (((userInfo.value.pointsBalance || 0) * 0.05) / 20).toFixed(2)
 })
 
 onShow(() => {

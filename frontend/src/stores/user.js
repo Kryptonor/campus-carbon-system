@@ -19,6 +19,8 @@ export const useUserStore = defineStore('user', () => {
   const points = computed(() => userInfo.value?.points || 0)
   const walletAddress = computed(() => userInfo.value?.walletAddress || '')
   const avatar = computed(() => userInfo.value?.avatar || '')
+  const role = computed(() => userInfo.value?.role || 'USER')
+  const isAdmin = computed(() => role.value === 'ADMIN')
 
   // ===== Actions =====
 
@@ -123,6 +125,8 @@ export const useUserStore = defineStore('user', () => {
     points,
     walletAddress,
     avatar,
+    role,
+    isAdmin,
     checkLogin,
     login,
     wechatLogin,

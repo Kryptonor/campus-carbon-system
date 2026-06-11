@@ -52,7 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 从 claims 解析出 userId 和 studentNo
+        // 从 claims 解析出 userId、studentNo 和 role
         Number userIdNum = claims.get("userId", Number.class);
         if (userIdNum != null) {
             request.setAttribute("userId", userIdNum.longValue());
@@ -60,6 +60,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String studentNo = claims.get("studentNo", String.class);
         if (studentNo != null) {
             request.setAttribute("studentNo", studentNo);
+        }
+        String role = claims.get("role", String.class);
+        if (role != null) {
+            request.setAttribute("role", role);
         }
 
         filterChain.doFilter(request, response);

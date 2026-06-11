@@ -56,7 +56,7 @@ onShow(() => loadData())
 
 async function loadData() {
   const res = await request({ url: '/admin/audit-list', method: 'GET' })
-  if (res.code === 200) audits.value = res.data.audits
+  if (res.code === 200) audits.value = res.data || []
 }
 
 async function handleReview(item, approved) {

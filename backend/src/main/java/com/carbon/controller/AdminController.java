@@ -7,16 +7,19 @@ import com.carbon.dao.ExchangeRecordRepository;
 import com.carbon.dao.UserRepository;
 import com.carbon.dto.AdminStatsResponse;
 import com.carbon.dto.ApiResponse;
+import com.carbon.dto.AuditItem;
 import com.carbon.dto.AuditReviewRequest;
 import com.carbon.entity.BehaviorRecord;
 import com.carbon.entity.User;
 import com.carbon.service.StatsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.time.LocalDateTime;
 
 @RestController
@@ -43,8 +46,17 @@ public class AdminController {
         this.blockchainProperties = blockchainProperties;
     }
 
+    private ApiResponse<?> checkAdmin(String role) {
+        if (role == null || !"ADMIN".equals(role)) {
+            return ApiResponse.error(403, "无管理员权限");
+        }
+        return null;
+    }
+
     @GetMapping("/stats")
-    public ApiResponse<AdminStatsResponse> getStats() {
+    public ApiResponse<AdminStatsResponse> getStats(@RequestAttribute(value = "role", required = false) String role) {
+        ApiResponse<?> err = checkAdmin(role);
+        if (err != null) return ApiResponse.error(403, "无管理员权限");
         long totalUsers = userRepository.count();
 
         LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
@@ -80,7 +92,10 @@ public class AdminController {
     }
 
     @PostMapping("/audit-review")
-    public ApiResponse<BehaviorRecord> auditReview(@RequestBody AuditReviewRequest request) {
+    public ApiResponse<BehaviorRecord> auditReview(@RequestBody AuditReviewRequest request,
+                                                    @RequestAttribute(value = "role", required = false) String role) {
+        ApiResponse<?> err = checkAdmin(role);
+        if (err != null) return ApiResponse.error(403, "无管理员权限");
         BehaviorRecord record = behaviorRecordRepository.findById(request.id())
                 .orElseThrow(() -> new IllegalArgumentException("打卡记录不存在"));
 
@@ -104,5 +119,59 @@ public class AdminController {
         }
 
         return ApiResponse.ok("审核成功", record);
+    }
+
+    @GetMapping("/audit-list")
+    public ApiResponse<List<AuditItem>> getAuditList(@RequestAttribute(value = "role", required = false) String role) {
+        ApiResponse<?> err = checkAdmin(role);
+        if (err != null) return ApiResponse.error(403, "无管理员权限");
+
+        List<BehaviorRecord> pending = behaviorRecordRepository.findByDecision("PENDING");
+        List<AuditItem> items = pending.stream().map(b -> {
+            User u = userRepository.findById(b.getUserId()).orElse(null);
+            return new AuditItem(
+                b.getId(),
+                b.getUserId(),
+                u != null ? u.getName() : "未知",
+                u != null ? u.getStudentNo() : "",
+                b.getBehaviorType(),
+                behaviorLabel(b.getBehaviorType()),
+                b.getImageUrl(),
+                b.getAiScore(),
+                b.getAiLabel(),
+                b.getDecision(),
+                b.getPoints(),
+                b.getCreatedAt(),
+                ""
+            );
+        }).collect(java.util.stream.Collectors.toList());
+
+        return ApiResponse.ok(items);
+    }
+
+    @GetMapping("/users")
+    public ApiResponse<List<User>> getUsers(@RequestAttribute(value = "role", required = false) String role) {
+        ApiResponse<?> err = checkAdmin(role);
+        if (err != null) return ApiResponse.error(403, "无管理员权限");
+
+        return ApiResponse.ok(userRepository.findAll());
+    }
+
+    private String behaviorLabel(String type) {
+        if (type == null) return "未知";
+        switch (type) {
+            case "walk": return "步行出行";
+            case "bike": return "骑行出行";
+            case "bus": return "公交出行";
+            case "recycle": return "垃圾分类";
+            case "oldGoods": return "旧物回收";
+            case "savePower": return "节约用电";
+            case "noPlastic": return "拒绝一次性塑料";
+            case "plantTree": return "植树护绿";
+            case "clean_plate": return "光盘行动";
+            case "vegan": return "绿色素食";
+            case "stairs": return "走楼梯";
+            default: return type;
+        }
     }
 }

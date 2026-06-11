@@ -17,10 +17,11 @@ public class JwtUtils {
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
     private static final long EXPIRATION = 24 * 60 * 60 * 1000L; // 24h
 
-    public String generateToken(Long userId, String studentNo) {
+    public String generateToken(Long userId, String studentNo, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("studentNo", studentNo);
+        claims.put("role", role != null ? role : "USER");
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(studentNo)

@@ -9,20 +9,20 @@
       <!-- Rewards Grid -->
       <view class="rewards-grid">
         <view v-for="item in rewards" :key="item.id" class="reward-card card">
-          <text class="reward-image">{{ item.image }}</text>
+          <text class="reward-image">{{ item.imageUrl || '📦' }}</text>
           <text class="reward-name">{{ item.name }}</text>
           <text class="reward-desc">{{ item.description }}</text>
           <view class="reward-footer">
-            <text class="reward-cost">{{ item.pointsCost }} 积分</text>
+            <text class="reward-cost">{{ item.pricePoints }} 积分</text>
             <text class="reward-stock">库存 {{ item.stock }}</text>
           </view>
           <button
             class="redeem-btn"
-            :class="{ disabled: balance.total < item.pointsCost || item.stock <= 0 }"
-            :disabled="balance.total < item.pointsCost || item.stock <= 0"
+            :class="{ disabled: balance.total < item.pricePoints || item.stock <= 0 }"
+            :disabled="balance.total < item.pricePoints || item.stock <= 0"
             @tap="handleRedeem(item)"
           >
-            {{ balance.total < item.pointsCost ? '积分不足' : item.stock <= 0 ? '已售罄' : '立即兑换' }}
+            {{ balance.total < item.pricePoints ? '积分不足' : item.stock <= 0 ? '已售罄' : '立即兑换' }}
           </button>
         </view>
       </view>
@@ -33,14 +33,14 @@
         <text>还没有兑换记录</text>
       </view>
       <view v-for="order in redeemHistory" :key="order.id" class="order-row">
-        <text class="order-icon">{{ order.image }}</text>
+        <text class="order-icon">🎁</text>
         <view class="order-info">
-          <text class="order-name">{{ order.rewardName }}</text>
-          <text class="order-date">{{ order.redeemDate }}</text>
+          <text class="order-name">商品 #{{ order.productId }}</text>
+          <text class="order-date">{{ order.createdAt }}</text>
         </view>
         <view class="order-right">
-          <text class="order-cost">-{{ order.pointsCost }}</text>
-          <text class="order-code">{{ order.code }}</text>
+          <text class="order-cost">-{{ order.totalPoints }}</text>
+          <text class="order-code">{{ order.redeemCode ? order.redeemCode.slice(0,8) : '' }}</text>
         </view>
       </view>
 
@@ -68,13 +68,13 @@ async function loadData() {
   ])
   if (balRes.code === 200) balance.value = balRes.data
   if (rewRes.code === 200) rewards.value = rewRes.data
-  if (histRes.code === 200) redeemHistory.value = histRes.data.orders
+  if (histRes.code === 200) redeemHistory.value = histRes.data.content || []
 }
 
 async function handleRedeem(item) {
   uni.showModal({
     title: '确认兑换',
-    content: `确定使用 ${item.pointsCost} 积分兑换「${item.name}」吗？`,
+    content: `确定使用 ${item.pricePoints} 积分兑换「${item.name}」吗？`,
     success: async (r) => {
       if (r.confirm) {
         const res = await pointsApi.redeem(item.id)

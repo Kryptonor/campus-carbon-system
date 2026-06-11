@@ -2,6 +2,12 @@
  * 积分中心 API — 对接后端 /api/points/*
  */
 import { request } from './request'
+import { useUserStore } from '@/stores/user'
+
+function getUserId() {
+  const store = useUserStore()
+  return store.userInfo?.id || 0
+}
 
 export const pointsApi = {
   getBalance() {
@@ -21,24 +27,24 @@ export const pointsApi = {
 
   getRewards() {
     return request({
-      url: '/points/rewards',
+      url: '/products',
       method: 'GET',
     })
   },
 
-  redeem(rewardId) {
+  redeem(productId) {
     return request({
-      url: '/points/redeem',
+      url: '/exchanges',
       method: 'POST',
-      data: { rewardId },
+      data: { userId: getUserId(), productId, amount: 1 },
     })
   },
 
   getRedeemHistory(page = 1, pageSize = 10) {
     return request({
-      url: '/points/redeem-history',
+      url: '/exchanges',
       method: 'GET',
-      data: { page, pageSize },
+      data: { userId: getUserId(), page: page - 1, size: pageSize },
     })
   },
 }

@@ -3,17 +3,16 @@
     <scroll-view class="page-scroll" scroll-y :show-scrollbar="false">
       <view v-for="u in users" :key="u.id" class="user-card card">
         <view class="user-left">
-          <view class="user-avatar" :class="{ frozen: u.status === 'frozen' }">{{ u.name.charAt(0) }}</view>
+          <view class="user-avatar">{{ (u.name || '?').charAt(0) }}</view>
           <view class="user-info">
             <text class="user-name">{{ u.name }}</text>
-            <text class="user-sid">{{ u.studentId }}</text>
-            <text class="user-class">{{ u.className }}</text>
+            <text class="user-sid">{{ u.studentNo }}</text>
+            <text class="user-class">{{ u.department }}</text>
           </view>
         </view>
         <view class="user-right">
-          <text class="user-points">{{ u.points }}分</text>
-          <text class="user-carbon">{{ u.carbonReduced }}kg</text>
-          <view class="user-status" :class="u.status">{{ statusLabels[u.status] }}</view>
+          <text class="user-points">{{ u.pointsBalance }}分</text>
+          <view class="user-status" :class="u.role === 'ADMIN' ? 'admin' : 'active'">{{ u.role === 'ADMIN' ? '管理员' : '学生' }}</view>
         </view>
       </view>
 
@@ -28,13 +27,12 @@ import { onShow } from '@dcloudio/uni-app'
 import { request } from '@/api/request'
 
 const users = ref([])
-const statusLabels = { active: '正常', frozen: '冻结', inactive: '非活跃' }
 
 onShow(() => loadData())
 
 async function loadData() {
   const res = await request({ url: '/admin/users', method: 'GET' })
-  if (res.code === 200) users.value = res.data.users
+  if (res.code === 200) users.value = res.data || []
 }
 </script>
 
@@ -59,6 +57,7 @@ async function loadData() {
 .user-status {
   font-size: 20rpx; padding: 2rpx 12rpx; border-radius: $radius-round; display: inline-block; margin-top: 4rpx;
   &.active { background: #E8F5E9; color: $success; }
+  &.admin { background: #FFF8E1; color: $accent-warm; }
   &.frozen { background: #FFEBEE; color: $danger; }
   &.inactive { background: #F5F5F5; color: $text-light; }
 }

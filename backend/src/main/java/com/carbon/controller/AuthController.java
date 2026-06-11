@@ -56,7 +56,7 @@ public class AuthController {
             return ApiResponse.error(400, "密码错误");
         }
 
-        String token = jwtUtils.generateToken(user.getId(), user.getStudentNo());
+        String token = jwtUtils.generateToken(user.getId(), user.getStudentNo(), user.getRole());
         LoginResponse response = new LoginResponse(
             token,
             token, // 用 token 作为 refreshToken
@@ -92,6 +92,7 @@ public class AuthController {
         user.setDepartment(request.department() != null ? request.department() : "");
         user.setClassName(request.className() != null ? request.className() : "");
         user.setGrade(request.grade() != null ? request.grade() : "");
+        user.setRole("USER");
         user.setPointsBalance(0L);
 
         userRepository.save(user);

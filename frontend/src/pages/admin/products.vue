@@ -3,13 +3,12 @@
     <scroll-view class="page-scroll" scroll-y :show-scrollbar="false">
       <view class="products-grid">
         <view v-for="p in products" :key="p.id" class="product-card card">
-          <text class="prod-image">{{ p.image }}</text>
+          <text class="prod-image">{{ p.imageUrl || '📦' }}</text>
           <text class="prod-name">{{ p.name }}</text>
           <view class="prod-meta">
-            <text class="prod-cost">{{ p.pointsCost }} 积分</text>
+            <text class="prod-cost">{{ p.pricePoints }} 积分</text>
             <text class="prod-stock" :class="{ low: p.stock <= 30 }">库存 {{ p.stock }}</text>
           </view>
-          <text class="prod-cat">{{ p.category }}</text>
           <view class="prod-actions">
             <button class="btn-edit" @tap="editProduct(p)">编辑</button>
           </view>
@@ -32,22 +31,18 @@
             <input class="form-input" v-model="editing.name" placeholder="请输入名称" />
           </view>
           <view class="form-item">
-            <text class="form-label">图标 (Emoji)</text>
-            <input class="form-input" v-model="editing.image" placeholder="如 🎁" />
+            <text class="form-label">图片地址</text>
+            <input class="form-input" v-model="editing.imageUrl" placeholder="如 https://example.com/img.jpg" />
           </view>
           <view class="form-row">
             <view class="form-item half">
               <text class="form-label">所需积分</text>
-              <input class="form-input" v-model.number="editing.pointsCost" type="number" placeholder="0" />
+              <input class="form-input" v-model.number="editing.pricePoints" type="number" placeholder="0" />
             </view>
             <view class="form-item half">
               <text class="form-label">库存</text>
               <input class="form-input" v-model.number="editing.stock" type="number" placeholder="0" />
             </view>
-          </view>
-          <view class="form-item">
-            <text class="form-label">分类</text>
-            <input class="form-input" v-model="editing.category" placeholder="如 生活用品" />
           </view>
           <view class="form-item">
             <text class="form-label">描述</text>
@@ -72,18 +67,18 @@ import { request } from '@/api/request'
 const products = ref([])
 const showModal = ref(false)
 const editing = reactive({
-  id: '', name: '', image: '', pointsCost: 0, stock: 0, category: '', description: '',
+  id: '', name: '', imageUrl: '', pricePoints: 0, stock: 0, description: '',
 })
 
 onShow(() => loadData())
 
 async function loadData() {
-  const res = await request({ url: '/admin/rewards', method: 'GET' })
+  const res = await request({ url: '/products', method: 'GET' })
   if (res.code === 200) products.value = res.data
 }
 
 function addProduct() {
-  Object.assign(editing, { id: '', name: '', image: '', pointsCost: 0, stock: 0, category: '', description: '' })
+  Object.assign(editing, { id: '', name: '', imageUrl: '', pricePoints: 0, stock: 0, description: '' })
   showModal.value = true
 }
 
@@ -93,18 +88,25 @@ function editProduct(p) {
 }
 
 async function handleSave() {
-  const method = editing.id ? 'PUT' : 'POST'
+  const isUpdate = !!editing.id
+  const url = isUpdate ? `/products/${editing.id}` : '/products'
   const res = await request({
-    url: '/admin/rewards',
-    method,
-    data: { ...editing },
+    url,
+    method: isUpdate ? 'PUT' : 'POST',
+    data: {
+      name: editing.name,
+      description: editing.description,
+      pricePoints: editing.pricePoints,
+      stock: editing.stock,
+      imageUrl: editing.imageUrl,
+    },
   })
   if (res.code === 200) {
     uni.showToast({ title: '保存成功', icon: 'success' })
     showModal.value = false
     loadData()
   } else {
-    uni.showToast({ title: '保存失败', icon: 'none' })
+    uni.showToast({ title: res.message || '保存失败', icon: 'none' })
   }
 }
 
@@ -115,7 +117,7 @@ async function deleteProduct() {
     confirmColor: '#F44336',
     success: async (r) => {
       if (r.confirm) {
-        const res = await request({ url: '/admin/rewards', method: 'DELETE', data: { id: editing.id } })
+        const res = await request({ url: `/products/${editing.id}`, method: 'DELETE' })
         if (res.code === 200) {
           uni.showToast({ title: '已删除', icon: 'success' })
           showModal.value = false
