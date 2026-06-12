@@ -21,7 +21,8 @@ carbon:
   ai:
     confidence-threshold: 0.80
     baidu:
-      endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general
+      # 升级为高精度「看图识万物/智能图像描述」API (原通用识别: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general)
+      endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v1/image-understanding/caption
       api-key: "JHvZ30ANA9ORAddAiC71pA83"
       secret-key: "43ZQ8EmvMsQD2IbVOVhaefitMrXFDS7L"
   audit:
