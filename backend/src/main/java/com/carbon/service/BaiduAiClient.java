@@ -51,6 +51,25 @@ public class BaiduAiClient {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
         JsonNode root = readJson(response.getBody());
+        
+        // 错误信息拦截与友好提示
+        if (root.has("error_code")) {
+            int errorCode = root.path("error_code").asInt();
+            String errorMsg = root.path("error_msg").asText();
+            System.err.println("[BaiduAiClient] Baidu AI returned error_code: " + errorCode + ", msg: " + errorMsg);
+            throw new IllegalStateException("Baidu AI error: [" + errorCode + "] " + errorMsg);
+        }
+
+        // 自适应兼容「图像描述/看图识万物」与「通用物体和场景识别」
+        if (endpoint.contains("caption") || endpoint.contains("understanding") || root.path("result").isObject()) {
+            JsonNode resultNode = root.path("result");
+            if (resultNode.isObject() && resultNode.has("description")) {
+                String description = resultNode.path("description").asText("unknown");
+                return new AiLabelScore(description, 0.99); // 图像描述整体置信度默认为高可信度
+            }
+        }
+
+        // 默认通用识别提取
         JsonNode resultNode = root.path("result");
         if (!resultNode.isArray() || resultNode.isEmpty()) {
             return new AiLabelScore("unknown", 0.0);
