@@ -133,7 +133,7 @@ public class AiVerifyService {
     }
 
     private void enforceDailyLimit(Long userId) {
-        long dailyLimit = systemConfigService.getLong("daily_limit", 3);
+        long dailyLimit = systemConfigService.getLong("daily_limit", 99);
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);

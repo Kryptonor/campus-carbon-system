@@ -21,7 +21,24 @@ public class SystemConfigService {
     @PostConstruct
     public void loadAll() {
         initDefaultConfigsIfNeeded();
+        upgradeDailyLimitIfNeeded(); // 智能检测并无感升级每日打卡上限，方便开发联调
         refreshCache();
+    }
+
+    private void upgradeDailyLimitIfNeeded() {
+        try {
+            Optional<SystemConfig> configOpt = systemConfigRepository.findById("daily_limit");
+            if (configOpt.isPresent()) {
+                SystemConfig config = configOpt.get();
+                if ("3".equals(config.getConfigValue())) {
+                    config.setConfigValue("99");
+                    systemConfigRepository.save(config);
+                    System.out.println("[SystemConfigService] Auto upgraded daily_limit from 3 to 99 for dev testing!");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to upgrade daily_limit: " + e.getMessage());
+        }
     }
 
     private void initDefaultConfigsIfNeeded() {
