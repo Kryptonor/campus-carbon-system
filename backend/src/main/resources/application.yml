@@ -3,13 +3,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/campus_carbon?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/campus_carbon?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: ""
+    password: "password"
   jpa:
     hibernate:
-      ddl-auto: none
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
     open-in-view: false
 
   servlet:
@@ -19,21 +19,14 @@ spring:
 
 carbon:
   ai:
-    confidence-threshold: 0.80
+    confidence-threshold: 0.60
     baidu:
       endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general
-      api-key: ""
-      secret-key: ""
+      api-key: "JHvZ30ANA9ORAddAiC71pA83"
+      secret-key: "43ZQ8EmvMsQD2IbVOVhaefitMrXFDS7L"
   audit:
     # Non-tamper audit log placeholder for compliance narratives.
     enabled: true
-
-app:
-  request-timeout-ms: 8000
-  auth:
-    token: ""
-
-carbon:
   blockchain:
     # Set to false in development to disable all on-chain operations.
     enabled: true
@@ -41,5 +34,10 @@ carbon:
     async-enabled: true
 
     contracts:
-      carbon-points: "0xPASTE_CARBON_POINTS_ADDRESS_HERE"
-      audit-trail: "0xPASTE_AUDIT_TRAIL_ADDRESS_HERE"
+      carbon-points: "0x0948ca17438bcc79e9d384df7995027da8442cc9"
+      audit-trail: "0x2b6eb6dae8980fe51e23e415d9e3a74b5a551552"
+
+app:
+  request-timeout-ms: 8000
+  auth:
+    token: ""
