@@ -21,6 +21,7 @@ carbon:
   ai:
     confidence-threshold: 0.60
     baidu:
+      # 通用物体和场景识别 API (兼容性最好，在百度云平台默认开通)
       endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general
       api-key: "JHvZ30ANA9ORAddAiC71pA83"
       secret-key: "43ZQ8EmvMsQD2IbVOVhaefitMrXFDS7L"
@@ -29,7 +30,7 @@ carbon:
     enabled: true
   blockchain:
     # Set to false in development to disable all on-chain operations.
-    enabled: true
+    enabled: false
     # true: Asynchronous mode (non-blocking). false: Synchronous mode (waits for transaction confirmation).
     async-enabled: true
 
