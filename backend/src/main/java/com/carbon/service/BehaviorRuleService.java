@@ -82,10 +82,14 @@ public class BehaviorRuleService {
         }
         String normalized = label.toLowerCase();
         if ("clean_plate".equals(behaviorType)) {
-            return containsAny(normalized, cleanPlateKeywords) || containsAny(normalized, Set.of("光盘", "空盘", "餐盘", "吃完", "剩饭", "剩菜", "光盘行动"));
+            return containsAny(normalized, cleanPlateKeywords) || containsAny(normalized, Set.of(
+                "光盘", "空盘", "餐盘", "吃完", "剩饭", "剩菜", "光盘行动", "吃光", "干净", "盘子", "碗", "饭碗", "空碗", "洗碗", "碟子", "餐具"
+            ));
         }
         if ("recycle".equals(behaviorType)) {
-            return containsAny(normalized, recycleKeywords) || containsAny(normalized, Set.of("垃圾", "回收", "分类", "塑料瓶", "废纸", "易拉罐", "垃圾桶"));
+            return containsAny(normalized, recycleKeywords) || containsAny(normalized, Set.of(
+                "垃圾", "回收", "分类", "塑料瓶", "废纸", "易拉罐", "垃圾桶", "纸箱", "纸盒", "玻璃瓶", "可回收", "饮料瓶", "金属"
+            ));
         }
         if ("walk".equals(behaviorType)) {
             return containsAny(normalized, Set.of("walk", "walking", "pedestrian", "footpath", "走路", "步行", "散步", "行人", "人行道"));
@@ -97,22 +101,41 @@ public class BehaviorRuleService {
             return containsAny(normalized, Set.of("bus", "subway", "metro", "transit", "公交", "巴士", "地铁", "公共交通"));
         }
         if ("oldGoods".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("secondhand", "used", "recycle", "old", "旧物", "二手", "回收", "旧货"));
+            return containsAny(normalized, Set.of(
+                "secondhand", "used", "recycle", "old", "旧物", "二手", "回收", "旧货", 
+                "闲置", "跳蚤", "旧书", "衣服", "旧衣服", "捐赠", "旧家电", "跳蚤市场"
+            ));
         }
         if ("savePower".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("switch", "off", "light", "power", "energy", "开关", "关闭", "节电", "电源", "灯"));
+            return containsAny(normalized, Set.of(
+                "switch", "off", "light", "power", "energy", "开关", "关闭", "节电", "电源", "灯", 
+                "插座", "插头", "节能", "电器", "空调", "断电", "灯泡", "手指", "按钮", "电线"
+            ));
         }
         if ("noPlastic".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("bag", "cloth", "cup", "no plastic", "环保袋", "布袋", "自带杯", "无塑料", "纸袋"));
+            return containsAny(normalized, Set.of(
+                "bag", "cloth", "cup", "no plastic", "环保袋", "布袋", "自带杯", "无塑料", "纸袋", 
+                "纸餐盒", "不锈钢", "玻璃杯", "保温杯", "编织袋", "购物袋", "杯子", "水杯", "马克杯", "咖啡杯", "手提袋", "袋子", "帆布包", "帆布袋"
+            ));
         }
         if ("plantTree".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("tree", "plant", "garden", "green", "树", "植树", "植物", "绿化", "盆栽"));
+            return containsAny(normalized, Set.of(
+                "tree", "plant", "garden", "green", "树", "植树", "植物", "绿化", "盆栽", 
+                "草坪", "花盆", "绿植", "浇水", "树苗", "树木", "泥土", "叶子", "树叶", "草", "花朵", "灌木", "草地", "土地", "大自然", "森林"
+            ));
         }
         if ("vegan".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("vegan", "vegetable", "salad", "fruit", "vegetarian", "蔬菜", "水果", "沙拉", "素食", "健康餐", "素菜"));
+            return containsAny(normalized, Set.of(
+                "vegan", "vegetable", "salad", "fruit", "vegetarian", 
+                "蔬菜", "水果", "沙拉", "素食", "健康餐", "素菜", 
+                "西兰花", "黄瓜", "番茄", "西红柿", "生菜", "胡萝卜", "白菜", "青菜", "菠菜", "芹菜", "茄子", "土豆", "马铃薯", "玉米", "红薯", 
+                "豆腐", "豆浆", "豆制品", "苹果", "香蕉", "橙子", "橘子", "西瓜", "草莓", "葡萄", "梨", "桃", "芒果", "柠檬", "坚果", "燕麦"
+            ));
         }
         if ("stairs".equals(behaviorType)) {
-            return containsAny(normalized, Set.of("stair", "stairs", "staircase", "step", "楼梯", "台阶", "走楼梯", "阶梯"));
+            return containsAny(normalized, Set.of(
+                "stair", "stairs", "staircase", "step", "楼梯", "台阶", "走楼梯", "阶梯", "通道", "消防通道", "安全出口", "指示牌", "走廊"
+            ));
         }
         return false;
     }
