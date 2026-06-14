@@ -28,7 +28,7 @@
         <text class="summary-label">本周累计(kg)</text>
       </view>
       <view class="summary-item">
-        <text class="summary-value" :class="trendClass">{{ weeklyChange }}%</text>
+        <text class="summary-value" :class="trendClass">{{ weeklyChange.toFixed(1) }}%</text>
         <text class="summary-label">较上周</text>
       </view>
       <view class="summary-item">
@@ -69,7 +69,7 @@ function switchPeriod(period) {
 
 const dailyAvg = computed(() => {
   if (!props.trendData.length) return '0'
-  const sum = props.trendData.reduce((acc, d) => acc + d.carbon, 0)
+  const sum = props.trendData.reduce((acc, d) => acc + d.carbonReduction, 0)
   return (sum / props.trendData.length).toFixed(1)
 })
 
@@ -100,14 +100,14 @@ function drawChart() {
   const sysInfo = uni.getSystemInfoSync()
   const dpr = sysInfo.pixelRatio || 2
   const W = 320
-  const H = 180
+  const H = 216
 
   // 高 DPI 适配：放大 canvas 缓冲区，缩放绘制上下文
   ctx.scale(dpr, dpr)
   ctx.clearRect(0, 0, W, H)
 
   // 图表绘制区域（逻辑像素）
-  const pad = { top: 22, right: 14, bottom: 32, left: 42 }
+  const pad = { top: 22, right: 14, bottom: 42, left: 42 }
   const chartLeft = pad.left
   const chartRight = W - pad.right
   const chartTop = pad.top
@@ -126,7 +126,7 @@ function drawChart() {
   }
 
   const dates = data.map((d) => d.date)
-  const values = data.map((d) => d.carbon)
+  const values = data.map((d) => d.carbonReduction)
 
   // 计算 Y 轴范围
   let minVal = Math.min(...values)
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
 
 .chart-canvas {
   width: 100%;
-  height: 360rpx;
+  height: 460rpx;
 }
 
 .chart-summary {

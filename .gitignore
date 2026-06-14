@@ -37,7 +37,7 @@ ai/*.pth
 ai/*.h5
 ai/*.pyc
 
-# 6. 安全与隐私 
+# 6. 安全与隐私
 .env
 .env.*
 !.env.example

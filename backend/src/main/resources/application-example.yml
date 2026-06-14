@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/campus_carbon?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: "password"
+    password: "请替换为你的MySQL密码"
   jpa:
     hibernate:
       ddl-auto: update
@@ -21,22 +21,17 @@ carbon:
   ai:
     confidence-threshold: 0.60
     baidu:
-      # 通用物体和场景识别 API (兼容性最好，在百度云平台默认开通)
       endpoint: https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general
-      api-key: "JHvZ30ANA9ORAddAiC71pA83"
-      secret-key: "43ZQ8EmvMsQD2IbVOVhaefitMrXFDS7L"
+      api-key: "请替换为你的百度AI API Key"
+      secret-key: "请替换为你的百度AI Secret Key"
   audit:
-    # Non-tamper audit log placeholder for compliance narratives.
     enabled: true
   blockchain:
-    # Set to false in development to disable all on-chain operations.
-    enabled: false
-    # true: Asynchronous mode (non-blocking). false: Synchronous mode (waits for transaction confirmation).
+    enabled: true
     async-enabled: true
-
     contracts:
-      carbon-points: "0x0948ca17438bcc79e9d384df7995027da8442cc9"
-      audit-trail: "0x2b6eb6dae8980fe51e23e415d9e3a74b5a551552"
+      carbon-points: "请替换为CarbonPoints合约部署地址"
+      audit-trail: "请替换为AuditTrail合约部署地址"
 
 app:
   request-timeout-ms: 8000

@@ -18,8 +18,8 @@
     <view class="carbon-dash card">
       <view class="dash-main">
         <text class="dash-main-label">碳积分总额</text>
-        <text class="dash-main-value">{{ userInfo.points || 0 }}</text>
-        <text class="dash-main-hint">≈ {{ ((userInfo.points || 0) * 0.05).toFixed(1) }} kg CO₂ 减排量</text>
+        <text class="dash-main-value">{{ userInfo.pointsBalance || 0 }}</text>
+        <text class="dash-main-hint">≈ {{ ((userInfo.pointsBalance || 0) * 0.05).toFixed(1) }} kg CO₂ 减排量</text>
       </view>
       <view class="dash-grid">
         <view class="dash-item">
@@ -31,7 +31,7 @@
           <text class="dash-item-label">本月消耗</text>
         </view>
         <view class="dash-item">
-          <text class="dash-item-val">{{ (userInfo.carbonReduced || 0).toFixed(1) }}kg</text>
+          <text class="dash-item-val">{{ carbonReduced.toFixed(1) }}kg</text>
           <text class="dash-item-label">累计减排</text>
         </view>
         <view class="dash-item">
@@ -57,7 +57,7 @@
       </view>
       <view class="info-row">
         <text class="info-label">加入日期</text>
-        <text class="info-value">{{ userInfo.joinDate || '-' }}</text>
+        <text class="info-value">{{ formatDate(userInfo.createdAt) || '-' }}</text>
       </view>
       <view class="info-row" @tap="editProfile">
         <text class="info-label">资料编辑</text>
@@ -146,13 +146,14 @@ import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { formatAddress } from '@/utils/web3'
 import { request } from '@/api/request'
+import { actionsApi } from '@/api/actions'
 
 const userStore = useUserStore()
 
 const showEdit = ref(false)
 const onChainBalance = ref(0)
 const onChainTxCount = ref(0)
-const monthlyStats = reactive({ earned: 128, spent: 50 })
+const monthlyStats = reactive({ earned: 0, spent: 0 })
 
 const editForm = reactive({
   name: '',
@@ -185,14 +186,50 @@ const shortAddress = computed(() => {
   return formatAddress(userStore.walletAddress) || '尚未开通'
 })
 
-const ecoTreeCount = computed(() => {
-  return ((userInfo.value.carbonReduced || 0) / 20).toFixed(2)
-})
+const carbonReduced = computed(() => (userInfo.value.pointsBalance || 0) * 0.05)
+const ecoTreeCount = computed(() => (carbonReduced.value / 20).toFixed(2))
 
 onShow(() => {
   userStore.fetchProfile()
   loadBlockchainInfo()
+  loadMonthlyStats()
 })
+
+async function loadMonthlyStats() {
+  // 本月获得：从打卡记录中汇总本月积分
+  try {
+    const histRes = await actionsApi.getMyHistory(1, 200)
+    if (histRes.code === 200) {
+      const allRecords = histRes.data.records || histRes.data.content || []
+      const now = new Date()
+      const thisMonth = now.getMonth()
+      const thisYear = now.getFullYear()
+      const monthRecords = allRecords.filter((r) => {
+        if (!r.date) return false
+        const d = new Date(r.date)
+        return d.getFullYear() === thisYear && d.getMonth() === thisMonth
+      })
+      monthlyStats.earned = monthRecords.reduce((s, r) => s + (r.points || 0), 0)
+    }
+  } catch (e) { /* ignore */ }
+
+  // 本月消耗：从兑换记录中汇总
+  try {
+    const redeemRes = await request({ url: '/points/redeem-history', method: 'GET' })
+    if (redeemRes.code === 200) {
+      const list = redeemRes.data.records || redeemRes.data || []
+      const now = new Date()
+      const thisMonth = now.getMonth()
+      const thisYear = now.getFullYear()
+      monthlyStats.spent = list
+        .filter((r) => {
+          const d = new Date(r.createdAt || r.date || r.redeemedAt)
+          return d.getFullYear() === thisYear && d.getMonth() === thisMonth
+        })
+        .reduce((s, r) => s + (r.points || r.pointsSpent || 0), 0)
+    }
+  } catch (e) { /* ignore */ }
+}
 
 async function loadBlockchainInfo() {
   try {
@@ -209,6 +246,11 @@ function editProfile() {
   editForm.department = userStore.department
   editForm.className = userInfo.value.className || ''
   showEdit.value = true
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  return dateStr.slice(0, 10)
 }
 
 function onEditDept(e) {

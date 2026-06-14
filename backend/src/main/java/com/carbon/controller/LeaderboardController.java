@@ -19,13 +19,19 @@ public class LeaderboardController {
     }
 
     @GetMapping("/list")
-    public ApiResponse<LeaderboardResponse> getList(
+    public ApiResponse<?> getList(
             @RequestAttribute("userId") Long userId,
             @RequestParam(value = "type", defaultValue = "points") String type,
             @RequestParam(value = "scope", defaultValue = "all") String scope,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "20") int pageSize
     ) {
-        return ApiResponse.ok(statsService.getLeaderboardList(userId, type, scope, page, pageSize));
+        // 前端传 type=class 等同于 scope=class
+        String effectiveScope = "class".equalsIgnoreCase(type) ? "class" : scope;
+
+        if ("class".equalsIgnoreCase(effectiveScope)) {
+            return ApiResponse.ok(statsService.getClassLeaderboard(userId, page, pageSize));
+        }
+        return ApiResponse.ok(statsService.getLeaderboardList(userId, type, effectiveScope, page, pageSize));
     }
 }

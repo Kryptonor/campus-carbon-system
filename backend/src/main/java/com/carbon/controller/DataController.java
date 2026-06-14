@@ -22,8 +22,36 @@ public class DataController {
     }
 
     @GetMapping("/carbon-breakdown")
-    public ApiResponse<List<BehaviorTypeStats>> getCarbonBreakdown() {
-        return ApiResponse.ok(statsService.getBehaviorTypeStats());
+    public ApiResponse<List<java.util.Map<String, Object>>> getCarbonBreakdown() {
+        List<BehaviorTypeStats> stats = statsService.getBehaviorTypeStats();
+        // 前端期望字段: name, value(百分比), color
+        java.util.Map<String, String> colors = java.util.Map.ofEntries(
+            java.util.Map.entry("walk", "#4CAF50"), java.util.Map.entry("bike", "#29B6F6"),
+            java.util.Map.entry("bus", "#FF9800"), java.util.Map.entry("recycle", "#8BC34A"),
+            java.util.Map.entry("oldGoods", "#FFB300"), java.util.Map.entry("savePower", "#00BCD4"),
+            java.util.Map.entry("noPlastic", "#E91E63"), java.util.Map.entry("plantTree", "#2E7D32"),
+            java.util.Map.entry("clean_plate", "#FF5722"), java.util.Map.entry("vegan", "#4CAF50"),
+            java.util.Map.entry("stairs", "#607D8B")
+        );
+        java.util.Map<String, String> names = java.util.Map.ofEntries(
+            java.util.Map.entry("walk", "步行出行"), java.util.Map.entry("bike", "骑行出行"),
+            java.util.Map.entry("bus", "公交出行"), java.util.Map.entry("recycle", "垃圾分类"),
+            java.util.Map.entry("oldGoods", "旧物回收"), java.util.Map.entry("savePower", "节约用电"),
+            java.util.Map.entry("noPlastic", "拒绝一次性塑料"), java.util.Map.entry("plantTree", "植树护绿"),
+            java.util.Map.entry("clean_plate", "光盘行动"), java.util.Map.entry("vegan", "绿色素食"),
+            java.util.Map.entry("stairs", "走楼梯")
+        );
+
+        double totalCarbon = stats.stream().mapToDouble(BehaviorTypeStats::carbonReduction).sum();
+        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+        for (BehaviorTypeStats s : stats) {
+            java.util.Map<String, Object> item = new java.util.HashMap<>();
+            item.put("name", names.getOrDefault(s.behaviorType(), s.behaviorType()));
+            item.put("value", totalCarbon > 0 ? Math.round(s.carbonReduction() / totalCarbon * 1000.0) / 10.0 : 0);
+            item.put("color", colors.getOrDefault(s.behaviorType(), "#9E9E9E"));
+            result.add(item);
+        }
+        return ApiResponse.ok(result);
     }
 
     @GetMapping("/campus-compare")

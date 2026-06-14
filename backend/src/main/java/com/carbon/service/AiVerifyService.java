@@ -83,7 +83,7 @@ public class AiVerifyService {
             carbonProperties.getAi().getConfidenceThreshold()
         );
         boolean thresholdPass = aiResult.score() >= threshold;
-        boolean labelMatch = behaviorRuleService.matchesLabel(behaviorType, aiResult.label());
+        boolean labelMatch = behaviorRuleService.matches(behaviorType, aiResult.rootCategory(), aiResult.label());
         boolean pass = thresholdPass && labelMatch;
         String decision = pass ? "PASS" : "REJECT";
         String status = pass ? "PENDING" : "REJECTED";
@@ -137,7 +137,8 @@ public class AiVerifyService {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);
-        long count = behaviorRecordRepository.countByUserIdAndCreatedAtBetween(userId, start, end);
+        // 仅统计已成功通过AI核验(PASS)的记录，失败/拒绝的尝试不消耗每日配额
+        long count = behaviorRecordRepository.countByUserIdAndDecisionAndCreatedAtBetween(userId, "PASS", start, end);
         if (count >= dailyLimit) {
             throw new IllegalArgumentException("daily limit reached");
         }

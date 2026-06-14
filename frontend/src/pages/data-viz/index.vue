@@ -9,7 +9,7 @@
         </view>
         <!-- #ifdef H5 -->
         <view class="chart-body">
-          <view ref="pieDom" class="chart-dom"></view>
+          <div ref="pieDom" class="chart-dom"></div>
         </view>
         <!-- #endif -->
         <!-- #ifdef MP-WEIXIN -->
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { request } from '@/api/request'
 
 // #ifdef H5
@@ -70,19 +70,29 @@ function buildPieOption() {
     series: [
       {
         type: 'pie',
-        radius: ['45%', '70%'],
-        center: ['50%', '50%'],
-        avoidLabelOverlap: false,
+        radius: ['40%', '62%'],
+        center: ['50%', '52%'],
+        avoidLabelOverlap: true,
         label: {
           show: true,
-          formatter: '{c}%',
-          color: '#ffffff',
+          position: 'outside',
+          formatter: '{b} {c}%',
+          color: '#555',
           fontSize: 10,
+          distanceToLabelLine: 4,
+        },
+        labelLine: {
+          show: true,
+          length: 18,
+          length2: 28,
+          smooth: true,
+          lineStyle: { color: '#bbb', width: 0.8 },
         },
         emphasis: {
           label: {
             fontSize: 14,
             fontWeight: 'bold',
+            color: '#333',
           },
         },
         data: data.map((d) => ({
@@ -109,7 +119,7 @@ function buildPieOption() {
         left: 'center',
         top: '52%',
         style: {
-          text: '构成',
+          text: '构成分析',
           textAlign: 'center',
           fill: '#9E9E9E',
           fontSize: 11,
@@ -127,8 +137,22 @@ const pieOption = computed(() => buildPieOption())
 
 function initPieChart() {
   if (!pieDom.value) return
-  pieChart?.dispose()
+  if (pieChart) pieChart.dispose()
   pieChart = echarts.init(pieDom.value)
+  const option = buildPieOption()
+  if (option && Object.keys(option).length > 0) {
+    pieChart.setOption(option)
+  }
+}
+
+function updatePieChart() {
+  if (!pieChart || !breakdown.value || breakdown.value.length === 0) {
+    // 数据到达且图表已初始化，补初始化
+    if (pieDom.value && breakdown.value && breakdown.value.length > 0) {
+      initPieChart()
+    }
+    return
+  }
   pieChart.setOption(buildPieOption())
 }
 
@@ -136,6 +160,15 @@ function handleResize() {
   pieChart?.resize()
 }
 
+// #endif
+
+// ===================== Watchers =====================
+
+// #ifdef H5
+// 监听数据变化，自动更新图表
+watch(breakdown, () => {
+  nextTick(() => updatePieChart())
+}, { deep: true })
 // #endif
 
 // ===================== Lifecycle =====================

@@ -6,7 +6,7 @@
         <text class="summary-icon">🌍</text>
         <view class="summary-text">
           <text class="summary-label">累计碳排放</text>
-          <text class="summary-value">{{ userStore.userInfo?.carbonTotal?.toFixed(1) || 0 }} kg</text>
+          <text class="summary-value">{{ totalCarbon.toFixed(1) }} kg</text>
         </view>
       </view>
       <view class="summary-right" @tap="goDataViz">
@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { recordApi } from '@/api/record'
@@ -65,6 +65,10 @@ import { recordApi } from '@/api/record'
 const userStore = useUserStore()
 const records = ref([])
 const refreshing = ref(false)
+
+const totalCarbon = computed(() => {
+  return records.value.reduce((sum, r) => sum + parseFloat(r.carbonAmount || 0), 0)
+})
 
 const catColors = {
   '餐饮': '#FF9800',

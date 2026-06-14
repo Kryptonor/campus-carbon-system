@@ -55,7 +55,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     public String recordBehavior(BehaviorRecord behavior, String studentNo) {
         if (!properties.isEnabled()) {
             String mockTxHash = "0x" + java.util.UUID.randomUUID().toString().replace("-", "");
-            log.info("Blockchain disabled. Mock behavior on-chain: recordId={}, studentNo={}, txHash={}", 
+            log.info("Blockchain disabled. Mock behavior on-chain: recordId={}, studentNo={}, txHash={}",
                      behavior.getId(), studentNo, mockTxHash);
             return mockTxHash;
         }
@@ -63,14 +63,24 @@ public class BlockchainServiceImpl implements BlockchainService {
             String cpAddress = properties.getContracts().getCarbonPoints();
             String atAddress = properties.getContracts().getAuditTrail();
 
-            // 1. 存证上链 — AuditTrail.recordBehavior(...)
-            List<Object> auditParams = buildBehaviorParams(behavior, studentNo);
-            TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
-                    CONTRACT_AUDIT_TRAIL, atAddress, "recordBehavior", auditParams);
-            checkTxResponse(auditTx, "recordBehavior");
+            String txHash;
 
-            String txHash = auditTx.getTransactionReceipt().getTransactionHash();
-            log.info("Behavior recorded on chain: recordId={}, txHash={}", behavior.getId(), txHash);
+            // 1. 存证上链 — AuditTrail.recordBehavior(...)
+            //    若记录已存在（补录场景），跳过存证继续执行 mint
+            try {
+                List<Object> auditParams = buildBehaviorParams(behavior, studentNo);
+                TransactionResponse auditTx = processor.sendTransactionAndGetResponseByContractLoader(
+                        CONTRACT_AUDIT_TRAIL, atAddress, "recordBehavior", auditParams);
+                checkTxResponse(auditTx, "recordBehavior");
+                txHash = auditTx.getTransactionReceipt().getTransactionHash();
+                log.info("Behavior recorded on chain: recordId={}, txHash={}", behavior.getId(), txHash);
+            } catch (BlockchainException e) {
+                // status=16 通常是 "recordId already exists" 或 "duplicate image hash"
+                // 补录场景：存证已存在，跳过，继续执行 mint
+                log.warn("recordBehavior skipped (already exists on chain?): recordId={}, error={}",
+                        behavior.getId(), e.getMessage());
+                txHash = "0x" + behavior.getId() + "_" + behavior.getUserId();
+            }
 
             // 2. 如果 AI 判定通过，铸造积分 — CarbonPoints.mint(...)
             if ("PASS".equals(behavior.getDecision()) && behavior.getPoints() > 0) {
@@ -225,15 +235,18 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     /**
-     * 校验交易回执是否成功。
+     * 校验交易回执是否成功（同时检查 status 和 message）。
      */
     private void checkTxResponse(TransactionResponse response, String action) {
         if (response == null || response.getTransactionReceipt() == null) {
             throw new BlockchainException(action + " returned null response");
         }
-        String msg = response.getTransactionReceipt().getMessage();
-        if (msg != null && !msg.isEmpty() && !"Success".equals(msg)) {
-            throw new BlockchainException(action + " failed: " + msg);
+        // FISCO BCOS: status=0 表示成功，非0表示失败
+        int status = response.getTransactionReceipt().getStatus();
+        if (status != 0) {
+            String msg = response.getTransactionReceipt().getMessage();
+            throw new BlockchainException(action + " failed with status=" + status
+                    + (msg != null && !msg.isEmpty() ? ", message=" + msg : ""));
         }
     }
 

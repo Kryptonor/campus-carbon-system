@@ -16,7 +16,7 @@ export const useUserStore = defineStore('user', () => {
   const userName = computed(() => userInfo.value?.name || '同学')
   const studentId = computed(() => userInfo.value?.studentId || '')
   const department = computed(() => userInfo.value?.department || '')
-  const points = computed(() => userInfo.value?.points || 0)
+  const points = computed(() => userInfo.value?.pointsBalance || 0)
   const walletAddress = computed(() => userInfo.value?.walletAddress || '')
   const avatar = computed(() => userInfo.value?.avatar || '')
 

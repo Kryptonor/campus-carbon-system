@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,17 +39,17 @@ public class ActionsController {
     private final BlockchainProperties blockchainProperties;
 
     private static final List<Map<String, Object>> BEHAVIOR_TEMPLATES = List.of(
-        Map.of("id", "walk", "name", "步行出行", "icon", "walk", "color", "#4CAF50"),
-        Map.of("id", "bike", "name", "骑行出行", "icon", "bike", "color", "#29B6F6"),
-        Map.of("id", "bus", "name", "公交出行", "icon", "bus", "color", "#FF9800"),
-        Map.of("id", "recycle", "name", "垃圾分类", "icon", "recycle", "color", "#8BC34A"),
-        Map.of("id", "oldGoods", "name", "旧物回收", "icon", "goods", "color", "#FFB300"),
-        Map.of("id", "savePower", "name", "节约用电", "icon", "power", "color", "#00BCD4"),
-        Map.of("id", "noPlastic", "name", "拒绝一次性塑料", "icon", "plastic", "color", "#E91E63"),
-        Map.of("id", "plantTree", "name", "植树护绿", "icon", "tree", "color", "#2E7D32"),
-        Map.of("id", "clean_plate", "name", "光盘行动", "icon", "plate", "color", "#FF5722"),
-        Map.of("id", "vegan", "name", "绿色素食", "icon", "vegan", "color", "#4CAF50"),
-        Map.of("id", "stairs", "name", "走楼梯", "icon", "stairs", "color", "#607D8B")
+        Map.of("id", "walk", "name", "步行出行", "icon", "🚶", "color", "#4CAF50"),
+        Map.of("id", "bike", "name", "骑行出行", "icon", "🚲", "color", "#29B6F6"),
+        Map.of("id", "bus", "name", "公交出行", "icon", "🚌", "color", "#FF9800"),
+        Map.of("id", "recycle", "name", "垃圾分类", "icon", "♻️", "color", "#8BC34A"),
+        Map.of("id", "oldGoods", "name", "旧物回收", "icon", "📦", "color", "#FFB300"),
+        Map.of("id", "savePower", "name", "节约用电", "icon", "💡", "color", "#00BCD4"),
+        Map.of("id", "noPlastic", "name", "拒绝一次性塑料", "icon", "🥤", "color", "#E91E63"),
+        Map.of("id", "plantTree", "name", "植树护绿", "icon", "🌳", "color", "#2E7D32"),
+        Map.of("id", "clean_plate", "name", "光盘行动", "icon", "🍽️", "color", "#FF5722"),
+        Map.of("id", "vegan", "name", "绿色素食", "icon", "🥬", "color", "#4CAF50"),
+        Map.of("id", "stairs", "name", "走楼梯", "icon", "🪜", "color", "#607D8B")
     );
 
     public ActionsController(UserRepository userRepository,
@@ -74,12 +76,16 @@ public class ActionsController {
             String bType = (String) template.get("id");
             long points = behaviorRuleService.getPoints(bType);
             long count = behaviorRecordRepository.countByUserIdAndBehaviorTypeAndCreatedAtBetween(userId, bType, todayStart, todayEnd);
-            long maxTimes = 5; // 每日最大打卡 5 次
+            long maxTimes = 5;
             long remainingTimes = Math.max(0, maxTimes - count);
+            long totalCheckins = behaviorRecordRepository.countByBehaviorType(bType);
 
             java.util.HashMap<String, Object> item = new java.util.HashMap<>(template);
             item.put("points", points);
             item.put("remainingTimes", remainingTimes);
+            item.put("totalCheckins", totalCheckins);
+            item.put("dailyLimit", maxTimes);
+            item.put("description", template.getOrDefault("name", ""));
             result.add(item);
         }
         return ApiResponse.ok(result);
@@ -136,12 +142,44 @@ public class ActionsController {
     }
 
     @GetMapping("/my-history")
-    public ApiResponse<Page<BehaviorRecord>> getMyHistory(
+    public ApiResponse<Map<String, Object>> getMyHistory(
             @RequestAttribute("userId") Long userId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
     ) {
         PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return ApiResponse.ok(behaviorRecordService.list(userId, pageable));
+        Page<BehaviorRecord> pageData = behaviorRecordService.list(userId, pageable);
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (BehaviorRecord r : pageData.getContent()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", "h_" + r.getId());
+            item.put("actionId", r.getBehaviorType());
+            item.put("actionName", BEHAVIOR_ICONS_TEXT.getOrDefault(r.getBehaviorType(), r.getBehaviorType()));
+            item.put("icon", BEHAVIOR_ICONS.getOrDefault(r.getBehaviorType(), "🌿"));
+            item.put("date", r.getCreatedAt().format(dtf));
+            item.put("points", r.getPoints());
+            item.put("status", "PASS".equals(r.getDecision()) ? "passed" : "pending");
+            records.add(item);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("records", records);
+        result.put("total", pageData.getTotalElements());
+        return ApiResponse.ok(result);
     }
+
+    private static final Map<String, String> BEHAVIOR_ICONS = Map.ofEntries(
+        Map.entry("walk", "🚶"), Map.entry("bike", "🚲"), Map.entry("bus", "🚌"),
+        Map.entry("recycle", "♻️"), Map.entry("oldGoods", "📦"), Map.entry("savePower", "💡"),
+        Map.entry("noPlastic", "🥤"), Map.entry("plantTree", "🌳"), Map.entry("clean_plate", "🍽️"),
+        Map.entry("vegan", "🥬"), Map.entry("stairs", "🪜")
+    );
+    private static final Map<String, String> BEHAVIOR_ICONS_TEXT = Map.ofEntries(
+        Map.entry("walk", "步行出行"), Map.entry("bike", "骑行出行"), Map.entry("bus", "公交出行"),
+        Map.entry("recycle", "垃圾分类"), Map.entry("oldGoods", "旧物回收"), Map.entry("savePower", "节约用电"),
+        Map.entry("noPlastic", "拒绝一次性塑料"), Map.entry("plantTree", "植树护绿"), Map.entry("clean_plate", "光盘行动"),
+        Map.entry("vegan", "绿色素食"), Map.entry("stairs", "走楼梯")
+    );
 }

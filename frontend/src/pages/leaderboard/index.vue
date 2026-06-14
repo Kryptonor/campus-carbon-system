@@ -17,19 +17,19 @@
       <view class="top3-row" v-if="rankList.length >= 3">
         <view class="top-item">
           <text class="top-medal">🥈</text>
-          <view class="top-avatar rank-2">{{ rankList[1].avatar }}</view>
+          <view class="top-avatar rank-2">{{ rankList[1].name.charAt(0) }}</view>
           <text class="top-name">{{ rankList[1].name }}</text>
           <text class="top-score">{{ rankList[1].score }}</text>
         </view>
         <view class="top-item top-1">
           <text class="top-medal">👑</text>
-          <view class="top-avatar rank-1">{{ rankList[0].avatar }}</view>
+          <view class="top-avatar rank-1">{{ rankList[0].name.charAt(0) }}</view>
           <text class="top-name">{{ rankList[0].name }}</text>
           <text class="top-score">{{ rankList[0].score }}</text>
         </view>
         <view class="top-item">
           <text class="top-medal">🥉</text>
-          <view class="top-avatar rank-3">{{ rankList[2].avatar }}</view>
+          <view class="top-avatar rank-3">{{ rankList[2].name.charAt(0) }}</view>
           <text class="top-name">{{ rankList[2].name }}</text>
           <text class="top-score">{{ rankList[2].score }}</text>
         </view>
@@ -39,7 +39,7 @@
       <scroll-view class="rank-scroll" scroll-y :show-scrollbar="false">
         <view v-for="item in rankList.slice(3)" :key="item.rank" class="rank-row">
           <text class="rank-num">{{ item.rank }}</text>
-          <view class="rank-avatar-sm">{{ item.avatar }}</view>
+          <view class="rank-avatar-sm">{{ item.name.charAt(0) }}</view>
           <view class="rank-info">
             <text class="rank-name">{{ item.name }}</text>
             <text class="rank-dept">{{ item.department }}</text>
@@ -58,7 +58,7 @@
         <view class="chart-header">
           <text class="chart-title">Top 10 班级人均碳减排</text>
         </view>
-        <view ref="classBarDom" class="chart-dom"></view>
+        <div ref="classBarDom" class="chart-dom"></div>
       </view>
       <!-- #endif -->
       <!-- #ifdef MP-WEIXIN -->
@@ -163,7 +163,7 @@ async function loadData() {
     } else {
       rankList.value = res.data.ranks || []
       myRank.value = res.data.myRank || 0
-      myScore.value = currentTab.value === 'carbon' ? res.data.myCarbonReduced : res.data.myScore
+      myScore.value = res.data.myScore || 0
     }
   }
 }
@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.page { min-height: 100vh; background: $bg-color; padding-bottom: calc($safe-bottom + 160rpx); }
+.page { min-height: 100vh; background: $bg-color; padding-bottom: calc($safe-bottom + 200rpx); }
 
 .tab-row { display: flex; padding: $space-md $space-xl; gap: $space-sm; }
 .tab-item {
@@ -256,8 +256,8 @@ onBeforeUnmount(() => {
 .top-name { font-size: $font-sm; color: $text-primary; font-weight: 600; }
 .top-score { font-size: $font-xs; color: $accent-warm; font-weight: 700; }
 
-.rank-scroll { padding: 0 $space-md; height: calc(100vh - 520rpx); }
-.class-scroll { padding: 0 $space-md; height: calc(100vh - 700rpx); }
+.rank-scroll { padding: 0 $space-md; height: calc(100vh - 560rpx); }
+.class-scroll { padding: 0 $space-md; height: calc(100vh - 740rpx); }
 
 .rank-row {
   display: flex; align-items: center; background: #fff; padding: $space-md $space-lg;
@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
 .cls-count { font-size: $font-xs; color: $text-secondary; min-width: 60rpx; text-align: right; }
 
 .my-rank {
-  position: fixed; bottom: 0; left: 0; right: 0;
+  position: fixed; bottom: 100rpx; left: 0; right: 0;
   display: flex; align-items: center; background: $bg-gradient;
   padding: $space-md $space-lg;
   padding-bottom: calc($safe-bottom + $space-md);

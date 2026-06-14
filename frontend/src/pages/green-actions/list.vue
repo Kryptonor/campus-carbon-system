@@ -154,7 +154,7 @@ async function loadData() {
   ])
   if (actRes.code === 200) actions.value = actRes.data
   if (histRes.code === 200) {
-    records.value = histRes.data.records || histRes.data.content || []
+    records.value = (histRes.data.records || histRes.data.content || []).filter((r) => (r.points || 0) > 0)
     const todayRecords = records.value.filter((r) => isToday(r.date))
     stats.todayCheckins = todayRecords.length
     stats.totalPoints = records.value.reduce((s, r) => s + (r.points || 0), 0)

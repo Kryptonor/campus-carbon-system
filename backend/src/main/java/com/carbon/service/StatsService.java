@@ -19,6 +19,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -299,6 +301,77 @@ public class StatsService {
                 collegeRank,
                 collegeTotal
         );
+    }
+
+    /**
+     * 班级人均排行 — 返回前端兼容格式。
+     * 前端期望字段: className, department, perCapitaCarbon, perCapitaPoints, studentCount
+     */
+    public Map<String, Object> getClassLeaderboard(Long userId, int page, int pageSize) {
+        double rate = getExchangeRate();
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+
+        List<User> allUsers = userRepository.findAll();
+        Map<String, List<User>> classGroup = allUsers.stream()
+                .filter(u -> u.getClassName() != null && !u.getClassName().isBlank())
+                .collect(Collectors.groupingBy(User::getClassName));
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Map.Entry<String, List<User>> entry : classGroup.entrySet()) {
+            String className = entry.getKey();
+            List<User> members = entry.getValue();
+            long totalPoints = members.stream().mapToLong(User::getPointsBalance).sum();
+            int studentCount = members.size();
+            long perCapitaPoints = totalPoints / studentCount;
+            double perCapitaCarbon = (totalPoints * rate) / studentCount;
+            String dept = members.get(0).getDepartment();
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("className", className);
+            item.put("department", dept != null ? dept : "");
+            item.put("perCapitaCarbon", Math.round(perCapitaCarbon * 10.0) / 10.0);
+            item.put("perCapitaPoints", perCapitaPoints);
+            item.put("studentCount", studentCount);
+            items.add(item);
+        }
+
+        // 按人均积分降序
+        items.sort((a, b) -> Long.compare(
+                (Long) b.get("perCapitaPoints"), (Long) a.get("perCapitaPoints")));
+
+        // 赋排名
+        for (int i = 0; i < items.size(); i++) {
+            items.get(i).put("rank", i + 1);
+        }
+
+        // 计算当前用户的班级排名
+        int myRank = 0;
+        long myScore = 0;
+        String myClassName = currentUser.getClassName();
+        if (myClassName != null && !myClassName.isBlank()) {
+            for (Map<String, Object> item : items) {
+                if (item.get("className").toString().equalsIgnoreCase(myClassName)) {
+                    myRank = (int) item.get("rank");
+                    myScore = (long) item.get("perCapitaPoints");
+                    break;
+                }
+            }
+        }
+
+        // 内存分页
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, items.size());
+        List<Map<String, Object>> paged = new ArrayList<>();
+        if (fromIndex < items.size()) {
+            paged = items.subList(fromIndex, toIndex);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("ranks", paged);
+        result.put("myRank", myRank);
+        result.put("myScore", myScore);
+        return result;
     }
 
     public List<DailyTrendStats> getUserCarbonTrend(Long userId, String period) {
