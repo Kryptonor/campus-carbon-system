@@ -17,7 +17,7 @@
           <input
             class="form-input"
             v-model="account"
-            :placeholder="role === 'ADMIN' ? '请输入管理员账户' : '请输入学号'"
+            placeholder="请输入学号"
             placeholder-style="color: #A5D6A7"
             type="text"
           />
@@ -38,18 +38,6 @@
           <text class="pwd-toggle" @tap="showPwd = !showPwd">
             {{ showPwd ? '隐藏' : '显示' }}
           </text>
-        </view>
-      </view>
-
-      <!-- Role Selector -->
-      <view class="role-selector">
-        <view class="role-option" :class="{ active: role === 'USER' }" @tap="role = 'USER'">
-          <text class="role-icon">👤</text>
-          <text class="role-text">普通用户</text>
-        </view>
-        <view class="role-option" :class="{ active: role === 'ADMIN' }" @tap="role = 'ADMIN'">
-          <text class="role-icon">🛡️</text>
-          <text class="role-text">管理员</text>
         </view>
       </view>
 
@@ -84,13 +72,12 @@ const userStore = useUserStore()
 
 const account = ref('')
 const password = ref('')
-const role = ref('USER')
 const showPwd = ref(false)
 const loading = ref(false)
 
 async function handleLogin() {
   if (!account.value.trim()) {
-    uni.showToast({ title: role.value === 'ADMIN' ? '请输入管理员账户' : '请输入学号', icon: 'none' })
+    uni.showToast({ title: '请输入学号', icon: 'none' })
     return
   }
   if (!password.value) {
@@ -105,11 +92,7 @@ async function handleLogin() {
   if (result.success) {
     uni.showToast({ title: '登录成功', icon: 'success' })
     setTimeout(() => {
-      if (userStore.isAdmin) {
-        uni.reLaunch({ url: '/pages/admin/dashboard' })
-      } else {
-        uni.reLaunch({ url: '/pages/index/index' })
-      }
+      uni.reLaunch({ url: '/pages/index/index' })
     }, 800)
   } else {
     uni.showToast({ title: result.message || '登录失败', icon: 'none' })
@@ -201,40 +184,6 @@ function goRegister() {
 .pwd-toggle {
   font-size: 32rpx;
   padding: $space-xs;
-}
-
-.role-selector {
-  display: flex;
-  gap: $space-md;
-  margin-bottom: $space-sm;
-}
-
-.role-option {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-xs;
-  padding: $space-sm $space-md;
-  border-radius: $radius-md;
-  background: $bg-white;
-  border: 2rpx solid $border-color;
-  transition: all 0.2s;
-
-  &.active {
-    border-color: $primary;
-    background: rgba(46, 125, 50, 0.08);
-  }
-}
-
-.role-icon {
-  font-size: 32rpx;
-}
-
-.role-text {
-  font-size: $font-sm;
-  font-weight: 500;
-  color: $text-primary;
 }
 
 .login-btn {

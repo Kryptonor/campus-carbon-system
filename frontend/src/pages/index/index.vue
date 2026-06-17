@@ -12,9 +12,6 @@
         </view>
       </view>
       <view class="header-right">
-        <view v-if="userStore.isAdmin" class="admin-tag" @tap="goAdmin">
-          <text class="admin-tag-icon">⚙️</text>
-        </view>
         <view class="rank-tag" @tap="goLeaderboard">
           <text class="rank-label">🏅 学院排名</text>
           <text class="rank-value">
@@ -154,10 +151,6 @@ function goDataViz() {
   uni.navigateTo({ url: '/pages/data-viz/index' })
 }
 
-function goAdmin() {
-  uni.navigateTo({ url: '/pages/admin/dashboard' })
-}
-
 function goBlockchainInfo() {
   uni.navigateTo({ url: '/pages/blockchain/index' })
 }
@@ -212,22 +205,6 @@ function goBlockchainInfo() {
   font-weight: 600;
   color: $text-primary;
   display: block;
-}
-
-.admin-tag {
-  width: 64rpx;
-  height: 64rpx;
-  background: $bg-white;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: $space-xs;
-}
-
-.admin-tag-icon {
-  font-size: 32rpx;
 }
 
 .rank-tag {
