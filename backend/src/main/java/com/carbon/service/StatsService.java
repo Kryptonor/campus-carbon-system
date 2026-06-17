@@ -95,7 +95,7 @@ public class StatsService {
 
     public List<LeaderboardEntry> getLeaderboard(int limit) {
         double rate = getExchangeRate();
-        // 按照积分余额排行
+        // 按积分余额排行，排除管理员
         List<User> topUsers = userRepository.findAll(
                 PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "pointsBalance"))
         ).getContent();
@@ -118,7 +118,7 @@ public class StatsService {
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
 
         if ("class".equalsIgnoreCase(scope)) {
-            // 班级人均排行
+            // 班级人均排行，排除管理员
             List<User> allUsers = userRepository.findAll();
             // 按班级分组，过滤掉班级为空的用户
             Map<String, List<User>> classGroup = allUsers.stream()
@@ -258,7 +258,7 @@ public class StatsService {
         double goalCarbon = 50.0; // 默认碳减排目标
         double goalProgress = Math.min(100.0, (weeklyCarbon / goalCarbon) * 100);
 
-        // 学院排名
+        // 学院排名（排除管理员）
         String dept = user.getDepartment();
         long collegeRank = 1;
         long collegeTotal = 1;

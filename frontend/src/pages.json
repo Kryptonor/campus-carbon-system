@@ -114,38 +114,6 @@
         "navigationBarBackgroundColor": "#2E7D32",
         "navigationBarTextStyle": "white"
       }
-    },
-    {
-      "path": "pages/admin/dashboard",
-      "style": {
-        "navigationBarTitleText": "管理后台",
-        "navigationBarBackgroundColor": "#1B5E20",
-        "navigationBarTextStyle": "white"
-      }
-    },
-    {
-      "path": "pages/admin/audit",
-      "style": {
-        "navigationBarTitleText": "审核管理",
-        "navigationBarBackgroundColor": "#1B5E20",
-        "navigationBarTextStyle": "white"
-      }
-    },
-    {
-      "path": "pages/admin/products",
-      "style": {
-        "navigationBarTitleText": "商品管理",
-        "navigationBarBackgroundColor": "#1B5E20",
-        "navigationBarTextStyle": "white"
-      }
-    },
-    {
-      "path": "pages/admin/users",
-      "style": {
-        "navigationBarTitleText": "用户管理",
-        "navigationBarBackgroundColor": "#1B5E20",
-        "navigationBarTextStyle": "white"
-      }
     }
   ],
   "globalStyle": {
@@ -182,7 +150,7 @@
       }
     ]
   },
-  "easycom": {
+  "easycom": {/
     "autoscan": true,
     "custom": {
       "^c-(.*)": "@/components/common/$1.vue",

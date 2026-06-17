@@ -16,7 +16,7 @@
           <text class="input-icon">👤</text>
           <input
             class="form-input"
-            v-model="studentId"
+            v-model="account"
             placeholder="请输入学号"
             placeholder-style="color: #A5D6A7"
             type="text"
@@ -70,13 +70,13 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-const studentId = ref('')
+const account = ref('')
 const password = ref('')
 const showPwd = ref(false)
 const loading = ref(false)
 
 async function handleLogin() {
-  if (!studentId.value.trim()) {
+  if (!account.value.trim()) {
     uni.showToast({ title: '请输入学号', icon: 'none' })
     return
   }
@@ -86,7 +86,7 @@ async function handleLogin() {
   }
 
   loading.value = true
-  const result = await userStore.login(studentId.value.trim(), password.value)
+  const result = await userStore.login(account.value.trim(), password.value)
   loading.value = false
 
   if (result.success) {
