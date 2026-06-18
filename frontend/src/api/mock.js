@@ -277,43 +277,6 @@ export const mockCampusCompare = [
   { label: '购物', me: 7.7, avg: 18.6 },
 ]
 
-// ====== 管理后台 Mock ======
-export const mockAdminStats = {
-  totalUsers: 2840,
-  activeToday: 326,
-  totalCheckins: 15280,
-  pendingAudits: 18,
-  totalCarbonReduced: 6840.5,
-  totalPointsIssued: 325800,
-  onChainTxCount: 4520,
-}
-
-export function createMockPendingAudits() {
-  return [
-    { id: 'a001', studentName: '陈同学', studentId: '2023005', actionName: '光盘打卡', date: '2026-06-02 12:30', photo: '', aiConfidence: 0.72, status: 'pending' },
-    { id: 'a002', studentName: '刘同学', studentId: '2024012', actionName: '垃圾回收', category: 'bottle', date: '2026-06-02 11:15', photo: '', aiConfidence: 0.65, status: 'pending' },
-    { id: 'a003', studentName: '赵同学', studentId: '2022018', actionName: '光盘打卡', date: '2026-06-02 10:00', photo: '', aiConfidence: 0.58, status: 'pending' },
-    { id: 'a004', studentName: '周同学', studentId: '2023009', actionName: '垃圾回收', category: 'battery', date: '2026-06-01 16:45', photo: '', aiConfidence: 0.70, status: 'pending' },
-    { id: 'a005', studentName: '林同学', studentId: '2024015', actionName: '光盘打卡', date: '2026-06-01 13:00', photo: '', aiConfidence: 0.61, status: 'pending' },
-    { id: 'a006', studentName: '吴同学', studentId: '2022007', actionName: '垃圾回收', category: 'paper', date: '2026-06-01 09:20', photo: '', aiConfidence: 0.74, status: 'pending' },
-  ]
-}
-
-export function createMockUserList() {
-  return [
-    { id: 'u001', studentId: '2024001001', name: '张同学', department: '计算机科学与技术学院', className: '软件工程2401班', points: 1280, carbonReduced: 64.0, status: 'active', joinDate: '2025-03-01' },
-    { id: 'u002', studentId: '2023005001', name: '李环保', department: '环境科学与工程学院', className: '环境工程2201班', points: 5200, carbonReduced: 280.5, status: 'active', joinDate: '2025-01-15' },
-    { id: 'u003', studentId: '2024002001', name: '王低碳', department: '计算机科学与技术学院', className: '计科2302班', points: 4850, carbonReduced: 245.3, status: 'active', joinDate: '2025-02-20' },
-    { id: 'u004', studentId: '2023006001', name: '陈绿行', department: '软件学院', className: '软件工程2202班', points: 4500, carbonReduced: 210.8, status: 'active', joinDate: '2025-03-10' },
-    { id: 'u005', studentId: '2024003001', name: '刘同学', department: '经济管理学院', className: '金融2203班', points: 890, carbonReduced: 44.5, status: 'active', joinDate: '2025-04-01' },
-    { id: 'u006', studentId: '2022001001', name: '赵同学', department: '法学院', className: '法学2201班', points: 560, carbonReduced: 28.0, status: 'frozen', joinDate: '2025-02-15' },
-    { id: 'u007', studentId: '2024004001', name: '周同学', department: '信息与通信工程学院', className: '通信工程2301班', points: 720, carbonReduced: 36.0, status: 'active', joinDate: '2025-05-10' },
-    { id: 'u008', studentId: '2023007001', name: '林同学', department: '外国语学院', className: '英语2202班', points: 1100, carbonReduced: 55.0, status: 'active', joinDate: '2025-03-20' },
-    { id: 'u009', studentId: '2024005001', name: '吴同学', department: '化学化工学院', className: '化工2301班', points: 340, carbonReduced: 17.0, status: 'active', joinDate: '2025-06-01' },
-    { id: 'u010', studentId: '2022002001', name: '郑同学', department: '数学与统计学院', className: '数学2202班', points: 260, carbonReduced: 13.0, status: 'inactive', joinDate: '2025-01-10' },
-  ]
-}
-
 export const mockRadarData = [
   { name: '低碳出行', value: 75, max: 100 },
   { name: '垃圾分类', value: 60, max: 100 },

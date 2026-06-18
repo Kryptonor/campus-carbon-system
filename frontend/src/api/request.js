@@ -19,7 +19,6 @@ import {
   createMockTransactions, mockRewards, createRedeemHistory,
   createMockRankList, createMockClassRankList, mockAiAnalyze,
   mockCarbonBreakdown, mockCampusCompare, mockRadarData,
-  mockAdminStats, createMockPendingAudits, createMockUserList,
 } from './mock'
 
 // 可变 Mock 状态——模拟后端数据库，会话内有效
@@ -403,60 +402,6 @@ function handleMock(config, resolve) {
           },
         })
       }
-      return
-    }
-
-    // ====== 管理后台 ======
-    if (url === '/admin/stats' && method === 'GET') {
-      resolve({ code: 200, data: { ...mockAdminStats } })
-      return
-    }
-
-    if (url === '/admin/audit-list' && method === 'GET') {
-      const audits = createMockPendingAudits()
-      resolve({ code: 200, data: { audits, total: audits.length } })
-      return
-    }
-
-    if (url === '/admin/audit-review' && method === 'POST') {
-      resolve({ code: 200, message: data.approved ? '审核通过' : '已驳回', data: { id: data.id, status: data.approved ? 'passed' : 'rejected' } })
-      return
-    }
-
-    if (url === '/admin/rewards' && method === 'GET') {
-      resolve({ code: 200, data: [...mockRewards] })
-      return
-    }
-
-    if (url === '/admin/rewards' && method === 'PUT') {
-      const idx = mockRewards.findIndex((r) => r.id === data.id)
-      if (idx >= 0) Object.assign(mockRewards[idx], data)
-      resolve({ code: 200, message: '更新成功', data: mockRewards[idx] || data })
-      return
-    }
-
-    if (url === '/admin/rewards' && method === 'POST') {
-      const newReward = { id: 'rw' + Date.now(), name: data.name, image: data.image || '🎁', pointsCost: data.pointsCost, stock: data.stock, description: data.description || '', category: data.category || '其他' }
-      mockRewards.push(newReward)
-      resolve({ code: 200, message: '添加成功', data: newReward })
-      return
-    }
-
-    if (url === '/admin/rewards' && method === 'DELETE') {
-      const rwIdx = mockRewards.findIndex((r) => r.id === data.id)
-      if (rwIdx >= 0) mockRewards.splice(rwIdx, 1)
-      resolve({ code: 200, message: '删除成功' })
-      return
-    }
-
-    if (url === '/admin/users' && method === 'GET') {
-      const users = createMockUserList()
-      resolve({ code: 200, data: { users, total: users.length } })
-      return
-    }
-
-    if (url === '/admin/users' && method === 'PUT') {
-      resolve({ code: 200, message: '更新成功', data })
       return
     }
 

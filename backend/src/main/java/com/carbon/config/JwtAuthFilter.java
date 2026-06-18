@@ -61,7 +61,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (studentNo != null) {
             request.setAttribute("studentNo", studentNo);
         }
-
         filterChain.doFilter(request, response);
     }
 }
