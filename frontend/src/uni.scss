@@ -1,0 +1,63 @@
+/* ===== 校园碳足迹 绿色环保主题 ===== */
+
+/* 主色调 */
+$primary: #2E7D32;
+$primary-light: #4CAF50;
+$primary-lighter: #81C784;
+$primary-lightest: #C8E6C9;
+$primary-dark: #1B5E20;
+$accent: #00C853;
+$accent-warm: #FFB300;
+
+/* 背景色 */
+$bg-color: #F1F8E9;
+$bg-white: #FFFFFF;
+$bg-card: #FFFFFF;
+$bg-gradient: linear-gradient(135deg, #2E7D32 0%, #4CAF50 50%, #81C784 100%);
+
+/* 文字颜色 */
+$text-primary: #1B5E20;
+$text-secondary: #558B2F;
+$text-light: #9E9E9E;
+$text-white: #FFFFFF;
+
+/* 功能色 */
+$success: #4CAF50;
+$warning: #FF9800;
+$danger: #F44336;
+$info: #29B6F6;
+
+/* 积分色 */
+$points-gold: #FFB300;
+$points-gradient: linear-gradient(135deg, #FFB300, #FFA000);
+
+/* 边框与阴影 */
+$border-color: #E8F5E9;
+$shadow-sm: 0 2rpx 8rpx rgba(46, 125, 50, 0.08);
+$shadow-md: 0 4rpx 16rpx rgba(46, 125, 50, 0.12);
+$shadow-lg: 0 8rpx 32rpx rgba(46, 125, 50, 0.16);
+
+/* 圆角 */
+$radius-sm: 12rpx;
+$radius-md: 20rpx;
+$radius-lg: 28rpx;
+$radius-round: 50%;
+
+/* 间距 */
+$space-xs: 8rpx;
+$space-sm: 16rpx;
+$space-md: 24rpx;
+$space-lg: 32rpx;
+$space-xl: 48rpx;
+
+/* 字号 */
+$font-xs: 22rpx;
+$font-sm: 26rpx;
+$font-md: 28rpx;
+$font-lg: 32rpx;
+$font-xl: 36rpx;
+$font-xxl: 44rpx;
+$font-title: 56rpx;
+
+/* 安全区域 */
+$safe-bottom: env(safe-area-inset-bottom, 0rpx);
